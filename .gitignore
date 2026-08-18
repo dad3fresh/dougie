@@ -3,3 +3,9 @@ Take a selfie with me.zip
 artifact-preview.html
 node_modules/
 .DS_Store
+
+# Stray images not part of this project
+China.jpg
+Japan.jpg
+Logo.jpg
+Tshirt.jpg
