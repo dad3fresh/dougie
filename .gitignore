@@ -1,0 +1,5 @@
+# Handoff + local preview build — not part of the deployed site
+Take a selfie with me.zip
+artifact-preview.html
+node_modules/
+.DS_Store

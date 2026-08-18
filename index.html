@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Take a Selfie with Me · @dug3fresh</title>
+<meta name="description" content="60 days across Southeast Asia, live. Catch me on the street, grab a selfie, get featured. Follow @dug3fresh.">
+
+<!-- Social share preview -->
+<meta property="og:title" content="Take a Selfie with Me · @dug3fresh">
+<meta property="og:description" content="60 days, one backpack, no fixed plan. Southeast Asia, live.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#0a0a0c">
+
+<!-- Fonts (soft dependency — page degrades to system fonts if offline) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0a0a0c; --bg2:#131316; --card:#18181c; --line:#26262c;
+    --pink:#ff2ec4; --cyan:#00f0ff; --amber:#ff9c3d;
+    --text:#f5f5f2; --muted:#9c9ca6;
+    --fd:'Anton', Impact, sans-serif;
+    --fb:'Space Grotesk', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--fb); min-height:100vh; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--pink); color:var(--bg)}
+  a{color:inherit}
+  img{max-width:100%}
+
+  /* Icon plumbing: [data-icon] spans get an inline SVG injected by JS. */
+  [data-icon]{display:inline-flex; line-height:0}
+  [data-icon] svg{width:100%; height:100%; display:block}
+
+  @keyframes blinkDot{0%,100%{opacity:1}50%{opacity:.25}}
+  @keyframes radarPulse{0%{transform:translate(-50%,-50%) scale(.6);opacity:.55}100%{transform:translate(-50%,-50%) scale(1.8);opacity:0}}
+  @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important; animation-iteration-count:1 !important}
+    html{scroll-behavior:auto}
+  }
+
+  /* ── Nav ── */
+  nav{
+    position:sticky; top:0; z-index:40; display:flex; align-items:center;
+    justify-content:space-between; padding:16px 20px;
+    background:rgba(10,10,12,.75); backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+  }
+  .wordmark{font-family:var(--fd); font-size:20px; letter-spacing:.5px}
+  .wordmark span{color:var(--pink)}
+  .nav-socials{display:flex; align-items:center; gap:14px}
+  .nav-socials a{color:var(--muted); width:18px; height:18px; transition:color .15s}
+  .nav-socials a:hover{color:var(--text)}
+
+  /* ── Hero ── */
+  .hero{position:relative; min-height:92vh; display:flex; flex-direction:column;
+    justify-content:center; padding:60px 24px 80px; overflow:hidden}
+  .radar-dot{position:absolute; top:50%; left:50%; width:14px; height:14px;
+    border-radius:50%; background:var(--cyan); transform:translate(-50%,-50%)}
+  .radar-ring{position:absolute; top:50%; left:50%; width:260px; height:260px;
+    border-radius:50%; border:1px solid var(--cyan);
+    transform:translate(-50%,-50%); animation:radarPulse 3s ease-out infinite}
+  .hero-inner{position:relative; z-index:2; max-width:640px; margin:0 auto;
+    text-align:center; display:flex; flex-direction:column; align-items:center; gap:22px}
+
+  .badge{display:inline-flex; align-items:center; gap:8px; padding:8px 16px;
+    border-radius:999px; border:1px solid; }
+  .badge .dot{width:9px; height:9px; border-radius:50%;
+    animation:blinkDot 1.4s ease-in-out infinite}
+  .badge .label{font-size:12px; font-weight:700; letter-spacing:1.5px}
+
+  .loc-chip{display:inline-flex; align-items:center; gap:8px; padding:9px 18px;
+    border-radius:999px; background:var(--bg2); border:1px solid var(--line);
+    color:var(--text); font-size:14px}
+  .loc-chip [data-icon]{width:15px; height:15px; color:var(--amber)}
+  .loc-chip strong{color:var(--amber)}
+
+  h1.headline{font-family:var(--fd); font-weight:400; line-height:.95; margin:8px 0 0;
+    text-transform:uppercase; letter-spacing:.5px; font-size:clamp(40px,10vw,84px)}
+  h1.headline span{display:block}
+  h1.headline .l2{color:var(--pink); text-shadow:0 0 24px rgba(255,46,196,.35)}
+  h1.headline .l3{color:var(--cyan); text-shadow:0 0 24px rgba(0,240,255,.35)}
+
+  .subhead{color:var(--muted); font-size:17px; max-width:460px; margin:0; line-height:1.5}
+
+  .cta-row{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:6px}
+  .btn{cursor:pointer; font-family:var(--fb); font-weight:700; font-size:15px;
+    padding:16px 26px; border-radius:10px; display:inline-flex; align-items:center;
+    gap:8px; border:1px solid transparent; text-decoration:none; transition:box-shadow .18s, transform .18s, background .18s, border-color .18s}
+  .btn [data-icon]{width:18px; height:18px}
+  .btn-pink{background:var(--pink); color:var(--bg); border-color:var(--pink)}
+  .btn-pink:hover{box-shadow:0 0 28px rgba(255,46,196,.55); transform:translateY(-1px)}
+  .btn-cyan-outline{background:transparent; color:var(--cyan); border-color:var(--cyan)}
+  .btn-cyan-outline:hover{background:rgba(0,240,255,.1); box-shadow:0 0 20px rgba(0,240,255,.3)}
+  .btn-amber-outline{background:transparent; color:var(--amber); border-color:var(--amber)}
+  .btn-amber-outline:hover{background:rgba(255,156,61,.1); box-shadow:0 0 20px rgba(255,156,61,.3)}
+  .btn-pink-outline{background:transparent; color:var(--pink); border-color:var(--pink); font-size:13px; padding:12px 20px}
+  .btn-pink-outline:hover{background:rgba(255,46,196,.1)}
+
+  /* ── Sections ── */
+  section{padding:80px 24px}
+  .wrap-1200{max-width:1200px; margin:0 auto}
+  .wrap-1000{max-width:1000px; margin:0 auto}
+  .wrap-900{max-width:900px; margin:0 auto}
+  .kicker{font-size:12px; font-weight:700; letter-spacing:2px; margin-bottom:6px}
+  h2.section-title{font-family:var(--fd); font-weight:400; text-transform:uppercase;
+    font-size:clamp(28px,5vw,44px); margin:0}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between;
+    flex-wrap:wrap; gap:12px; margin-bottom:32px}
+  .section-head p{color:var(--muted); font-size:14px; margin:0; max-width:280px}
+
+  /* Placeholder / photo tile shared look */
+  .photo{position:relative; background:rgba(127,127,127,.06); border-radius:8px;
+    overflow:hidden; display:flex; align-items:center; justify-content:center;
+    color:var(--muted); text-align:center}
+  .photo.filled{background:#000}
+  .photo img{width:100%; height:100%; object-fit:cover; display:block}
+  .photo .ph{display:flex; flex-direction:column; align-items:center; gap:8px;
+    padding:14px; font-size:12px; line-height:1.35}
+  .photo .ph [data-icon]{width:26px; height:26px; opacity:.45}
+  .photo .ph span{opacity:.8; max-width:90%}
+
+  /* Daily Drop */
+  .drop-row{display:flex; gap:20px; overflow-x:auto; padding:6px 6px 20px;
+    scroll-snap-type:x mandatory}
+  .drop-card{flex:0 0 auto; width:240px; scroll-snap-align:start;
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px; display:flex; flex-direction:column; gap:10px}
+  .drop-card .photo{width:216px; height:270px}
+  .drop-meta{display:flex; align-items:center; justify-content:space-between}
+  .drop-time{font-size:11px; font-family:ui-monospace, Menlo, Consolas, monospace; color:var(--muted)}
+  .tag{font-size:10px; font-weight:700; letter-spacing:.5px; padding:3px 9px;
+    border-radius:999px; background:rgba(255,156,61,.12); color:var(--amber)}
+  .drop-card p{margin:0; font-size:13px; line-height:1.4}
+
+  /* Spot Me Challenge */
+  .challenge{border:1px solid var(--line); border-radius:20px;
+    background:linear-gradient(160deg, rgba(255,46,196,.06), rgba(0,240,255,.05));
+    padding:44px 32px; display:flex; flex-direction:column; align-items:center;
+    text-align:center; gap:18px; box-shadow:0 0 60px rgba(0,240,255,.06)}
+  .challenge .tile{width:56px; height:56px; border-radius:14px; background:var(--pink);
+    display:flex; align-items:center; justify-content:center; animation:floatY 3s ease-in-out infinite}
+  .challenge .tile [data-icon]{width:28px; height:28px; color:var(--bg)}
+  .challenge p{color:var(--muted); font-size:15px; max-width:520px; margin:0; line-height:1.6}
+  .challenge p strong{color:var(--text)}
+  .steps{display:flex; gap:24px; flex-wrap:wrap; justify-content:center; margin-top:6px}
+  .step{display:flex; flex-direction:column; align-items:center; gap:8px; width:130px}
+  .step [data-icon]{width:22px; height:22px; color:var(--cyan)}
+  .step span{font-size:13px}
+
+  /* Wall of Fame */
+  .masonry{columns:230px; column-gap:16px}
+  .wall-tile{break-inside:avoid; margin-bottom:16px; border-radius:12px; overflow:hidden;
+    border:1px solid var(--line); background:var(--card)}
+  .wall-tile .photo{width:100%; border-radius:0}
+  .wall-cap{padding:10px 12px; display:flex; align-items:center; gap:6px}
+  .wall-cap [data-icon]{width:12px; height:12px; color:var(--muted)}
+  .wall-cap span{font-size:12px; color:var(--muted)}
+
+  /* Social hub */
+  .social-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px}
+  .social-card{text-decoration:none; display:flex; flex-direction:column; align-items:center;
+    gap:10px; padding:26px 16px; border-radius:14px; background:var(--card);
+    border:1px solid var(--line); color:var(--text); transition:border-color .18s, box-shadow .18s}
+  .social-card [data-icon]{width:26px; height:26px}
+  .social-card span{font-weight:700; font-size:14px}
+  .social-card.fb:hover{border-color:#1877F2; box-shadow:0 0 24px rgba(24,119,242,.28)}
+  .social-card.ig:hover{border-color:#E1306C; box-shadow:0 0 24px rgba(225,48,108,.28)}
+  .social-card.yt:hover{border-color:#FF3B3B; box-shadow:0 0 24px rgba(255,59,59,.25)}
+  .social-card.tt:hover{border-color:var(--cyan); box-shadow:0 0 24px rgba(0,240,255,.25)}
+  .fb [data-icon]{color:#1877F2}
+  .ig [data-icon]{color:#E1306C}
+  .yt [data-icon]{color:#FF3B3B}
+  .tt [data-icon]{color:var(--cyan)}
+  .qr-inline{color:var(--muted); font-size:13px; margin-top:24px}
+  .qr-inline a{color:var(--cyan); cursor:pointer; text-decoration:none}
+  .qr-inline a:hover{text-decoration:underline}
+
+  /* Floating QR button */
+  .fab{cursor:pointer; position:fixed; bottom:24px; right:24px; z-index:50;
+    width:56px; height:56px; border-radius:50%; border:none; background:var(--cyan);
+    box-shadow:0 0 24px rgba(0,240,255,.5); display:flex; align-items:center;
+    justify-content:center; transition:box-shadow .18s}
+  .fab:hover{box-shadow:0 0 36px rgba(0,240,255,.7)}
+  .fab [data-icon]{width:24px; height:24px; color:var(--bg)}
+
+  footer{padding:28px 24px; text-align:center; border-top:1px solid var(--line);
+    color:var(--muted); font-size:12px}
+
+  /* Modals */
+  .scrim{position:fixed; inset:0; z-index:100; background:rgba(0,0,0,.8);
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; padding:24px}
+  .scrim[hidden]{display:none}
+  .modal-close{position:absolute; top:14px; right:14px; border:none; background:none;
+    cursor:pointer; color:var(--muted); width:20px; height:20px}
+  .modal-close:hover{color:var(--text)}
+
+  .qr-card{background:#fff; border-radius:20px; padding:28px; display:flex;
+    flex-direction:column; align-items:center; gap:16px; max-width:340px; width:100%; position:relative}
+  .qr-card .modal-close{color:#0a0a0c}
+  .qr-card h3{font-family:var(--fd); font-size:20px; color:#0a0a0c; text-transform:uppercase; margin:0}
+  .qr-card .qr-box{width:240px; height:240px; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff}
+  .qr-card .qr-box svg{width:100%; height:100%}
+  .qr-card p{color:#555; font-size:13px; text-align:center; margin:0}
+
+  .upload-card{background:var(--bg2); border:1px solid var(--line); border-radius:20px;
+    padding:28px; display:flex; flex-direction:column; gap:16px; max-width:400px; width:100%; position:relative}
+  .upload-card h3{font-family:var(--fd); font-size:20px; text-transform:uppercase; margin:0}
+  .upload-card .note{color:var(--muted); font-size:13px; margin:0}
+  .drop-zone{width:100%; height:180px; border-radius:10px; border:1.5px dashed var(--line);
+    background:rgba(127,127,127,.06); display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:8px; color:var(--muted); cursor:pointer; text-align:center; padding:12px}
+  .drop-zone.has-file{border-style:solid; border-color:var(--pink); color:var(--text)}
+  .drop-zone [data-icon]{width:26px; height:26px; opacity:.6}
+  .drop-zone img{width:100%; height:100%; object-fit:cover; border-radius:8px}
+  .field{background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; color:var(--text); font-family:var(--fb); font-size:14px}
+  .field:focus{outline:none; border-color:var(--pink)}
+  .upload-success{display:flex; flex-direction:column; align-items:center; gap:12px; padding:20px 0; text-align:center}
+  .upload-success [data-icon]{width:40px; height:40px; color:var(--pink)}
+  .upload-success h3{margin:0}
+
+  .visually-hidden{position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0}
+</style>
+</head>
+<body>
+
+<!-- ══ Nav ══ -->
+<nav>
+  <div class="wordmark"><span>@</span>dug3fresh</div>
+  <div class="nav-socials">
+    <a data-social="facebook"  target="_blank" rel="noopener" aria-label="Facebook"  data-icon="facebook"></a>
+    <a data-social="instagram" target="_blank" rel="noopener" aria-label="Instagram" data-icon="instagram"></a>
+    <a data-social="youtube"   target="_blank" rel="noopener" aria-label="YouTube"   data-icon="youtube"></a>
+    <a data-social="tiktok"    target="_blank" rel="noopener" aria-label="TikTok"    data-icon="tiktok"></a>
+  </div>
+</nav>
+
+<!-- ══ Hero ══ -->
+<section class="hero">
+  <div class="radar-dot"></div>
+  <div class="radar-ring"></div>
+  <div class="radar-ring" style="animation-delay:1s"></div>
+  <div class="radar-ring" style="animation-delay:2s"></div>
+
+  <div class="hero-inner">
+    <div class="badge" id="live-badge">
+      <span class="dot"></span>
+      <span class="label">LIVE IN ASIA</span>
+    </div>
+
+    <div class="loc-chip">
+      <span data-icon="map-pin"></span>
+      Currently in: <strong id="loc-text">Bangkok, Thailand</strong>
+    </div>
+
+    <h1 class="headline">
+      <span>Catch Me If You Can</span>
+      <span class="l2">Take a Selfie</span>
+      <span class="l3">With Me</span>
+    </h1>
+
+    <p class="subhead">60 days, one backpack, no fixed plan. Night markets, street food alleys, temples and everything between — Southeast Asia, live.</p>
+
+    <div class="cta-row">
+      <button class="btn btn-pink" data-open="upload">
+        <span data-icon="camera"></span> Got a Photo With Me? Upload It
+      </button>
+      <a href="#drop" class="btn btn-cyan-outline">
+        <span data-icon="radar"></span> Track My Next Drop
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Daily Drop ══ -->
+<section id="drop" class="wrap-1200">
+  <div class="section-head">
+    <div>
+      <div class="kicker" style="color:var(--cyan)">THE FEED</div>
+      <h2 class="section-title">Daily Drop</h2>
+    </div>
+    <p>Fresh selfies from wherever I landed today. Swipe through.</p>
+  </div>
+  <div class="drop-row" id="drop-row"><!-- rendered from content.js --></div>
+</section>
+
+<!-- ══ Spot Me Challenge ══ -->
+<section class="wrap-900">
+  <div class="challenge">
+    <div class="tile"><span data-icon="camera"></span></div>
+    <div class="kicker" style="color:var(--pink)">THE CHALLENGE</div>
+    <h2 class="section-title" style="font-size:clamp(26px,5vw,40px)">Spot Me Challenge</h2>
+    <p>See me out on the street? Grab a selfie, tag <strong>@dug3fresh</strong>, or scan my QR code on the spot — you'll get featured on the Wall of Fame.</p>
+    <div class="steps">
+      <div class="step"><span data-icon="eye"></span><span>1. Spot me</span></div>
+      <div class="step"><span data-icon="camera"></span><span>2. Selfie + tag</span></div>
+      <div class="step"><span data-icon="trophy"></span><span>3. Get featured</span></div>
+    </div>
+    <button class="btn btn-amber-outline" style="margin-top:8px; font-size:14px" data-open="qr">
+      <span data-icon="qr-code"></span> Flash My QR Code
+    </button>
+  </div>
+</section>
+
+<!-- ══ Wall of Fame ══ -->
+<section id="wall" class="wrap-1200">
+  <div class="section-head">
+    <div>
+      <div class="kicker" style="color:var(--amber)">COMMUNITY</div>
+      <h2 class="section-title">Wall of Fame</h2>
+    </div>
+    <button class="btn btn-pink-outline" data-open="upload">
+      <span data-icon="upload-cloud"></span> Upload Yours
+    </button>
+  </div>
+  <div class="masonry" id="wall-grid"><!-- rendered from content.js --></div>
+</section>
+
+<!-- ══ Follow the Journey ══ -->
+<section class="wrap-1000" style="text-align:center">
+  <div class="kicker" style="color:var(--cyan)">STAY IN THE LOOP</div>
+  <h2 class="section-title" style="margin-bottom:32px">Follow the Journey</h2>
+  <div class="social-grid">
+    <a class="social-card fb" data-social="facebook"  target="_blank" rel="noopener">
+      <span data-icon="facebook"></span><span>Facebook</span></a>
+    <a class="social-card ig" data-social="instagram" target="_blank" rel="noopener">
+      <span data-icon="instagram"></span><span>Instagram</span></a>
+    <a class="social-card yt" data-social="youtube"   target="_blank" rel="noopener">
+      <span data-icon="youtube"></span><span>YouTube</span></a>
+    <a class="social-card tt" data-social="tiktok"    target="_blank" rel="noopener">
+      <span data-icon="tiktok"></span><span>TikTok</span></a>
+  </div>
+  <p class="qr-inline">Met me on the street? <a data-open="qr">Tap here to flash my QR</a> instead.</p>
+</section>
+
+<!-- ══ Floating QR ══ -->
+<button class="fab" data-open="qr" aria-label="Show QR code">
+  <span data-icon="qr-code"></span>
+</button>
+
+<footer>&copy; 2026 @dug3fresh &middot; 60 days across Southeast Asia</footer>
+
+<!-- ══ QR modal ══ -->
+<div class="scrim" id="qr-modal" hidden data-close>
+  <div class="qr-card" role="dialog" aria-modal="true" aria-label="QR code">
+    <button class="modal-close" data-close aria-label="Close"><span data-icon="x"></span></button>
+    <h3>Scan Me</h3>
+    <div class="qr-box" id="qr-box"></div>
+    <p>Scan to follow @dug3fresh on Instagram</p>
+  </div>
+</div>
+
+<!-- ══ Upload modal ══ -->
+<div class="scrim" id="upload-modal" hidden data-close>
+  <div class="upload-card" role="dialog" aria-modal="true" aria-label="Upload your selfie">
+    <button class="modal-close" data-close aria-label="Close"><span data-icon="x"></span></button>
+
+    <!-- Form state -->
+    <div id="upload-form">
+      <h3>Upload Your Selfie</h3>
+      <p class="note">UI preview only — submissions aren't stored yet.</p>
+      <label class="drop-zone" id="drop-zone">
+        <span data-icon="upload-cloud"></span>
+        <span id="drop-zone-label">Drop your selfie here</span>
+        <input type="file" accept="image/*" class="visually-hidden" id="file-input">
+      </label>
+      <input class="field" type="text" placeholder="Your name" id="up-name" style="margin-top:16px; width:100%">
+      <input class="field" type="text" placeholder="Where'd you meet me?" id="up-where" style="margin-top:16px; width:100%">
+      <button class="btn btn-pink" id="submit-upload" style="margin-top:16px; width:100%; justify-content:center">
+        <span data-icon="send"></span> Submit
+      </button>
+    </div>
+
+    <!-- Success state -->
+    <div id="upload-success" class="upload-success" hidden>
+      <span data-icon="check-circle"></span>
+      <h3>Nice One!</h3>
+      <p class="note" style="text-align:center">Demo submission received — this is a UI preview. Live uploads land here once the backend's wired up.</p>
+      <button class="btn btn-pink" data-close style="justify-content:center">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/qrcode.js"></script>
+<script src="content.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var C = window.CONTENT || {};
+  var cfg = C.config || {};
+  var socials = C.socials || {};
+
+  // ── Icon set ──────────────────────────────────────────────────────
+  // Brand glyphs (fill, simple-icons) + generic UI icons (stroke, Lucide-style).
+  var ICONS = {
+    // Brand — fill, 24x24
+    facebook:  '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073C24 5.446 18.627 0 12 0S0 5.446 0 12.073c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>',
+    youtube:   '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+    tiktok:    '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+    // Generic UI — stroke, Lucide-style, 24x24
+    _s: function (inner) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>'; },
+  };
+  ICONS['map-pin']   = ICONS._s('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>');
+  ICONS.camera       = ICONS._s('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/>');
+  ICONS.radar        = ICONS._s('<path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/>');
+  ICONS.eye          = ICONS._s('<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>');
+  ICONS.trophy       = ICONS._s('<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>');
+  ICONS['qr-code']   = ICONS._s('<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>');
+  ICONS['upload-cloud'] = ICONS._s('<path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/>');
+  ICONS.send         = ICONS._s('<path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/>');
+  ICONS['check-circle'] = ICONS._s('<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>');
+  ICONS.x            = ICONS._s('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>');
+
+  function mountIcons(root) {
+    (root || document).querySelectorAll('[data-icon]').forEach(function (el) {
+      if (el.dataset.mounted) return;
+      var svg = ICONS[el.getAttribute('data-icon')];
+      if (svg) { el.innerHTML = svg; el.dataset.mounted = '1'; }
+    });
+  }
+
+  // ── Small helpers ────────────────────────────────────────────────
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function photoHTML(item, extraStyle) {
+    if (item.image) {
+      return '<div class="photo filled" style="' + (extraStyle || '') + '">' +
+        '<img src="' + esc(item.image) + '" alt="' + esc(item.placeholder || item.caption || '') + '" loading="lazy"></div>';
+    }
+    return '<div class="photo" style="' + (extraStyle || '') + '">' +
+      '<div class="ph"><span data-icon="camera"></span><span>' + esc(item.placeholder || 'Photo') + '</span></div></div>';
+  }
+
+  // ── Wire social links ────────────────────────────────────────────
+  document.querySelectorAll('[data-social]').forEach(function (a) {
+    var url = socials[a.getAttribute('data-social')];
+    if (url) a.setAttribute('href', url);
+  });
+
+  // ── Config-driven bits ───────────────────────────────────────────
+  var isLive = cfg.isLive !== false; // default true
+  var badge = document.getElementById('live-badge');
+  var badgeColor = isLive ? '#ff2ec4' : '#ff9c3d';
+  badge.style.borderColor = isLive ? 'rgba(255,46,196,.4)' : 'rgba(255,156,61,.4)';
+  badge.style.background  = isLive ? 'rgba(255,46,196,.08)' : 'rgba(255,156,61,.08)';
+  badge.querySelector('.dot').style.background = badgeColor;
+  var lbl = badge.querySelector('.label');
+  lbl.style.color = badgeColor;
+  lbl.textContent = isLive ? 'LIVE IN ASIA' : 'ON THE MOVE';
+  if (cfg.currentLocation) document.getElementById('loc-text').textContent = cfg.currentLocation;
+
+  // ── Render Daily Drop ────────────────────────────────────────────
+  var dropRow = document.getElementById('drop-row');
+  (C.drops || []).forEach(function (d) {
+    var card = document.createElement('div');
+    card.className = 'drop-card';
+    card.innerHTML =
+      photoHTML(d) +
+      '<div class="drop-meta"><span class="drop-time">' + esc(d.time) + '</span>' +
+      '<span class="tag">' + esc(d.location) + '</span></div>' +
+      '<p>' + esc(d.caption) + '</p>';
+    dropRow.appendChild(card);
+  });
+
+  // ── Render Wall of Fame ──────────────────────────────────────────
+  var wallGrid = document.getElementById('wall-grid');
+  (C.wall || []).forEach(function (w) {
+    var tile = document.createElement('div');
+    tile.className = 'wall-tile';
+    var h = (typeof w.h === 'number' ? w.h : 260) + 'px';
+    tile.innerHTML =
+      photoHTML(w, 'height:' + h) +
+      '<div class="wall-cap"><span data-icon="map-pin"></span><span>' + esc(w.caption) + '</span></div>';
+    wallGrid.appendChild(tile);
+  });
+
+  // ── QR code (client-side, from config) ───────────────────────────
+  var qrRendered = false;
+  function renderQR() {
+    if (qrRendered) return;
+    var box = document.getElementById('qr-box');
+    var target = cfg.qrTarget || 'https://www.instagram.com/dug3fresh/';
+    try {
+      var qr = qrcode(0, 'M');          // type 0 = auto-size, error correction M
+      qr.addData(target);
+      qr.make();
+      box.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 4, scalable: true });
+    } catch (e) {
+      box.innerHTML = '<p style="color:#555;font-size:12px;padding:12px;text-align:center">Could not render QR. Target:<br>' + esc(target) + '</p>';
+    }
+    qrRendered = true;
+  }
+
+  // ── Modals ───────────────────────────────────────────────────────
+  var lastFocus = null;
+  function openModal(name) {
+    var m = document.getElementById(name + '-modal');
+    if (!m) return;
+    if (name === 'qr') renderQR();
+    if (name === 'upload') resetUpload();
+    lastFocus = document.activeElement;
+    m.hidden = false;
+    document.body.style.overflow = 'hidden';
+    var closeBtn = m.querySelector('.modal-close') || m.querySelector('[data-close]');
+    if (closeBtn) closeBtn.focus();
+  }
+  function closeModal(m) {
+    m.hidden = true;
+    document.body.style.overflow = '';
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  function closeAll() {
+    document.querySelectorAll('.scrim').forEach(function (m) { if (!m.hidden) closeModal(m); });
+  }
+
+  document.addEventListener('click', function (e) {
+    var opener = e.target.closest('[data-open]');
+    if (opener) { e.preventDefault(); openModal(opener.getAttribute('data-open')); return; }
+    var closer = e.target.closest('[data-close]');
+    if (closer) {
+      // A [data-close] on the scrim itself closes; on the card it also closes.
+      // Clicks that bubble up from inside the card (without hitting a closer) do not.
+      var scrim = closer.classList.contains('scrim') ? closer : closer.closest('.scrim');
+      if (closer.classList.contains('scrim') && e.target !== closer) return; // ignore clicks inside the card
+      if (scrim) { e.preventDefault(); closeModal(scrim); }
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAll();
+  });
+
+  // ── Upload flow (UI-only) ────────────────────────────────────────
+  var fileInput = document.getElementById('file-input');
+  var dropZone = document.getElementById('drop-zone');
+  var dzLabel = document.getElementById('drop-zone-label');
+  function resetUpload() {
+    document.getElementById('upload-form').hidden = false;
+    document.getElementById('upload-success').hidden = true;
+    document.getElementById('up-name').value = '';
+    document.getElementById('up-where').value = '';
+    if (fileInput) fileInput.value = '';
+    dropZone.classList.remove('has-file');
+    dropZone.querySelectorAll('img').forEach(function (i) { i.remove(); });
+    dzLabel.textContent = 'Drop your selfie here';
+    dzLabel.style.display = '';
+    dropZone.querySelector('[data-icon]').style.display = '';
+  }
+  if (fileInput) {
+    fileInput.addEventListener('change', function () {
+      var f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      dropZone.classList.add('has-file');
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        dropZone.querySelectorAll('img').forEach(function (i) { i.remove(); });
+        var img = document.createElement('img');
+        img.src = ev.target.result;
+        dropZone.querySelector('[data-icon]').style.display = 'none';
+        dzLabel.style.display = 'none';
+        dropZone.appendChild(img);
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+  document.getElementById('submit-upload').addEventListener('click', function () {
+    // UI-only: no network call. Swap to the success state.
+    document.getElementById('upload-form').hidden = true;
+    document.getElementById('upload-success').hidden = false;
+    mountIcons(document.getElementById('upload-success'));
+  });
+
+  // ── Go ───────────────────────────────────────────────────────────
+  mountIcons(document);
+})();
+</script>
+</body>
+</html>
