@@ -11,9 +11,13 @@
  */
 window.CONTENT = {
   // ── Status / config ──────────────────────────────────────────────
+  // NOTE: `isLive` and `currentLocation` here are just the FALLBACK /
+  // default. The daily live value comes from location.json (rewritten by
+  // your phone shortcut). If location.json is missing/unreachable, these
+  // values are used instead. Edit qrTarget here.
   config: {
-    isLive: true,                                   // true → pink "LIVE IN ASIA" badge, false → amber "ON THE MOVE"
-    currentLocation: "Bangkok, Thailand",           // shown in the hero location chip
+    isLive: true,                                   // fallback badge state (location.json.live overrides)
+    currentLocation: "Bangkok, Thailand",           // fallback location (location.json.city overrides)
     qrTarget: "https://www.instagram.com/dug3fresh/" // URL the QR code points at
   },
 

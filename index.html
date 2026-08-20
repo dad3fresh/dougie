@@ -455,17 +455,30 @@
     if (url) a.setAttribute('href', url);
   });
 
-  // ── Config-driven bits ───────────────────────────────────────────
-  var isLive = cfg.isLive !== false; // default true
+  // ── Live status (location + live badge) ──────────────────────────
+  // Applied first from content.js defaults, then overridden by
+  // location.json if present. location.json is the file your phone
+  // shortcut rewrites daily — see README ("Updating your location").
   var badge = document.getElementById('live-badge');
-  var badgeColor = isLive ? '#ff2ec4' : '#ff9c3d';
-  badge.style.borderColor = isLive ? 'rgba(255,46,196,.4)' : 'rgba(255,156,61,.4)';
-  badge.style.background  = isLive ? 'rgba(255,46,196,.08)' : 'rgba(255,156,61,.08)';
-  badge.querySelector('.dot').style.background = badgeColor;
-  var lbl = badge.querySelector('.label');
-  lbl.style.color = badgeColor;
-  lbl.textContent = isLive ? 'LIVE IN ASIA' : 'ON THE MOVE';
-  if (cfg.currentLocation) document.getElementById('loc-text').textContent = cfg.currentLocation;
+  var locText = document.getElementById('loc-text');
+  function applyStatus(live, city) {
+    var color = live ? '#ff2ec4' : '#ff9c3d';
+    badge.style.borderColor = live ? 'rgba(255,46,196,.4)' : 'rgba(255,156,61,.4)';
+    badge.style.background  = live ? 'rgba(255,46,196,.08)' : 'rgba(255,156,61,.08)';
+    badge.querySelector('.dot').style.background = color;
+    var lbl = badge.querySelector('.label');
+    lbl.style.color = color;
+    lbl.textContent = live ? 'LIVE IN ASIA' : 'ON THE MOVE';
+    if (city) locText.textContent = city;
+  }
+  // Defaults baked into content.js (also the offline / file:// fallback).
+  applyStatus(cfg.isLive !== false, cfg.currentLocation);
+  // Live override. cache:'no-store' so a fresh deploy's value is never masked
+  // by a stale copy; failure (offline, file://) silently keeps the defaults.
+  fetch('location.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) { if (j && typeof j === 'object') applyStatus(j.live !== false, j.city || cfg.currentLocation); })
+    .catch(function () { /* keep content.js defaults */ });
 
   // ── Render Daily Drop ────────────────────────────────────────────
   var dropRow = document.getElementById('drop-row');

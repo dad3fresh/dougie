@@ -9,7 +9,8 @@ calls. Edit, drag to a host, done.
 | File | What it is |
 |---|---|
 | `index.html` | The whole page (HTML + CSS + JS, self-contained). You rarely touch this. |
-| `content.js` | **The file you edit as the trip goes on** — feed, wall, location, live status, links. |
+| `content.js` | Feed, wall, QR target, and the **fallback** location/live status. |
+| `location.json` | **Your daily location + live status** — rewritten by your phone shortcut (see below). |
 | `vendor/qrcode.js` | Vendored MIT QR-code library (client-side QR, no external API). |
 | `photos/` | Drop your real photos here (create the folder when you have some). |
 
@@ -29,6 +30,30 @@ Open **`content.js`** and edit the plain JS object:
   (px) for the masonry look.
 
 No build, no reload gymnastics — save the file and refresh the page.
+
+## Updating your location (daily)
+
+Location and live status live in **`location.json`**, separate from the rest so
+you can change them safely from your phone:
+
+```json
+{ "city": "Chiang Mai, Thailand", "live": true, "updated": "2026-08-21" }
+```
+
+The page fetches this on load and it overrides the fallback in `content.js`.
+`live: true` shows the pink "LIVE IN ASIA" badge; `false` shows amber "ON THE
+MOVE". `updated` is just for your own reference.
+
+Two ways to change it:
+
+1. **From github.com on your phone** — open `location.json`, tap the pencil,
+   edit the city, commit. Vercel auto-deploys in ~30s.
+2. **One-tap phone shortcut** (recommended) — a shortcut that rewrites
+   `location.json` via the GitHub API so you never open a browser. It makes two
+   GitHub API calls: `GET` the file (to read its current `sha`), then `PUT` the
+   new content (base64-encoded) with that `sha`. Needs a fine-grained GitHub
+   Personal Access Token scoped to **only this repo** with **Contents:
+   read/write**. Keep the token inside the shortcut — never commit it.
 
 ## Running locally
 
