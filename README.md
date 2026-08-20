@@ -48,12 +48,9 @@ Two ways to change it:
 
 1. **From github.com on your phone** — open `location.json`, tap the pencil,
    edit the city, commit. Vercel auto-deploys in ~30s.
-2. **One-tap phone shortcut** (recommended) — a shortcut that rewrites
-   `location.json` via the GitHub API so you never open a browser. It makes two
-   GitHub API calls: `GET` the file (to read its current `sha`), then `PUT` the
-   new content (base64-encoded) with that `sha`. Needs a fine-grained GitHub
-   Personal Access Token scoped to **only this repo** with **Contents:
-   read/write**. Keep the token inside the shortcut — never commit it.
+2. **One-tap iOS shortcut** (recommended) — a shortcut that rewrites
+   `location.json` via the GitHub API so you never open a browser. Full
+   step-by-step build guide: **[SHORTCUT.md](SHORTCUT.md)**.
 
 ## Running locally
 
