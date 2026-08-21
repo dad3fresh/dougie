@@ -1,4 +1,4 @@
-# Take a Selfie with Me — @dug3fresh
+# Take a Selfie with Dougie — @dug3fresh
 
 A mobile-first landing page / social funnel for a 60-day Southeast Asia travel
 series. Single static page — no build step, no framework, no runtime network
