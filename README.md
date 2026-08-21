@@ -48,9 +48,11 @@ Two ways to change it:
 
 1. **From github.com on your phone** — open `location.json`, tap the pencil,
    edit the city, commit. Vercel auto-deploys in ~30s.
-2. **One-tap iOS shortcut** (recommended) — a shortcut that rewrites
-   `location.json` via the GitHub API so you never open a browser. Full
-   step-by-step build guide: **[SHORTCUT.md](SHORTCUT.md)**.
+2. **One-tap iOS shortcut** — a shortcut that rewrites `location.json` via the
+   GitHub API so you never open a browser. Guide: **[SHORTCUT.md](SHORTCUT.md)**.
+3. **The Check-In app** (nicest) — a private `/checkin` page you add to your
+   home screen; tap it, confirm the GPS-detected city, done. Setup:
+   **[CHECKIN.md](CHECKIN.md)**.
 
 ## Running locally
 

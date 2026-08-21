@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dougie Check-In</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- Add-to-home-screen (PWA) -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Check-In">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0a0a0c; --bg2:#131316; --card:#18181c; --line:#26262c;
+    --pink:#ff2ec4; --cyan:#00f0ff; --amber:#ff9c3d;
+    --text:#f5f5f2; --muted:#9c9ca6;
+    --fd:'Anton', Impact, sans-serif;
+    --fb:'Space Grotesk', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:var(--fb);
+    min-height:100vh; min-height:100dvh; -webkit-font-smoothing:antialiased;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:max(24px, env(safe-area-inset-top)) 20px 40px;
+  }
+  .app{width:100%; max-width:420px; margin-top:6vh}
+  .brand{font-family:var(--fd); font-size:30px; letter-spacing:.5px; text-align:center; margin:0 0 4px}
+  .brand span{color:var(--pink)}
+  .sub{color:var(--muted); font-size:13px; text-align:center; margin:0 0 26px}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:16px}
+  label{font-size:12px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase}
+  input[type=text], input[type=password]{
+    width:100%; background:var(--bg2); border:1px solid var(--line); border-radius:12px;
+    padding:15px 16px; color:var(--text); font-family:var(--fb); font-size:17px;
+  }
+  input:focus{outline:none; border-color:var(--pink)}
+  .field{display:flex; flex-direction:column; gap:8px}
+
+  button{cursor:pointer; font-family:var(--fb); font-weight:700; border-radius:12px; border:1px solid transparent; transition:box-shadow .18s, transform .12s, background .18s, border-color .18s}
+  button:active{transform:translateY(1px)}
+  .btn-primary{background:var(--pink); color:var(--bg); font-size:17px; padding:16px; width:100%}
+  .btn-primary:hover{box-shadow:0 0 26px rgba(255,46,196,.5)}
+  .btn-primary:disabled{opacity:.5; cursor:default; box-shadow:none}
+  .btn-ghost{background:var(--bg2); color:var(--text); border-color:var(--line); font-size:15px; padding:14px 16px; width:100%; display:flex; align-items:center; justify-content:center; gap:10px}
+  .btn-ghost:hover{border-color:var(--cyan)}
+  .btn-ghost svg{width:18px; height:18px; color:var(--cyan)}
+
+  /* Live toggle */
+  .seg{display:flex; gap:8px}
+  .seg button{flex:1; padding:14px 8px; font-size:13px; letter-spacing:.5px; background:var(--bg2); color:var(--muted); border:1px solid var(--line)}
+  .seg button[aria-pressed=true]{color:var(--bg)}
+  .seg button.live[aria-pressed=true]{background:var(--pink); border-color:var(--pink)}
+  .seg button.move[aria-pressed=true]{background:var(--amber); border-color:var(--amber)}
+
+  .msg{font-size:14px; text-align:center; min-height:20px; margin:2px 0 0}
+  .msg.ok{color:var(--cyan)}
+  .msg.err{color:#ff6b6b}
+  .msg.busy{color:var(--muted)}
+
+  .foot{text-align:center; margin-top:18px}
+  .foot a{color:var(--muted); font-size:12px; text-decoration:none; cursor:pointer}
+  .foot a:hover{color:var(--text)}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1 class="brand"><span>@</span>dougie check-in</h1>
+  <p class="sub">Update where you are on dougiewashere.com</p>
+
+  <!-- PIN gate -->
+  <div class="card" id="pin-card">
+    <div class="field">
+      <label for="pin">Enter your PIN</label>
+      <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="••••">
+    </div>
+    <button class="btn-primary" id="unlock">Unlock</button>
+    <p class="msg" id="pin-msg"></p>
+  </div>
+
+  <!-- Check-in form -->
+  <div class="card" id="checkin-card" hidden>
+    <button class="btn-ghost" id="gps">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      Use my current location
+    </button>
+
+    <div class="field">
+      <label for="city">Where are you?</label>
+      <input type="text" id="city" placeholder="City, Country" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Status</label>
+      <div class="seg" id="seg">
+        <button type="button" class="live" data-live="true" aria-pressed="true">LIVE IN ASIA</button>
+        <button type="button" class="move" data-live="false" aria-pressed="false">ON THE MOVE</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="checkin">Check In</button>
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <div class="foot"><a id="forget" hidden>Forget PIN on this device</a></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var LS_PIN = 'dougie_checkin_pin';
+
+  var pinCard = document.getElementById('pin-card');
+  var checkinCard = document.getElementById('checkin-card');
+  var pinInput = document.getElementById('pin');
+  var pinMsg = document.getElementById('pin-msg');
+  var cityInput = document.getElementById('city');
+  var seg = document.getElementById('seg');
+  var msg = document.getElementById('msg');
+  var forget = document.getElementById('forget');
+
+  var live = true;
+
+  function setMsg(el, text, kind) {
+    el.textContent = text || '';
+    el.className = 'msg' + (kind ? ' ' + kind : '');
+  }
+
+  // ── Live toggle ──
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-live]');
+    if (!b) return;
+    live = b.getAttribute('data-live') === 'true';
+    seg.querySelectorAll('button').forEach(function (x) {
+      x.setAttribute('aria-pressed', String(x === b));
+    });
+  });
+
+  // ── PIN gate (client-side gate only; the PIN is really checked by the server) ──
+  function showCheckin() {
+    pinCard.hidden = true;
+    checkinCard.hidden = false;
+    forget.hidden = false;
+  }
+  function currentPin() { return localStorage.getItem(LS_PIN) || pinInput.value; }
+
+  document.getElementById('unlock').addEventListener('click', function () {
+    var v = pinInput.value.trim();
+    if (!v) { setMsg(pinMsg, 'Enter your PIN.', 'err'); return; }
+    localStorage.setItem(LS_PIN, v);
+    setMsg(pinMsg, '');
+    showCheckin();
+  });
+  pinInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('unlock').click(); });
+
+  forget.addEventListener('click', function () {
+    localStorage.removeItem(LS_PIN);
+    checkinCard.hidden = true;
+    pinCard.hidden = false;
+    forget.hidden = true;
+    pinInput.value = '';
+    pinInput.focus();
+  });
+
+  // Skip the PIN screen if we've stored one before.
+  if (localStorage.getItem(LS_PIN)) showCheckin();
+
+  // ── GPS → reverse geocode ──
+  document.getElementById('gps').addEventListener('click', function () {
+    if (!navigator.geolocation) { setMsg(msg, 'This device has no location support.', 'err'); return; }
+    setMsg(msg, 'Getting your location…', 'busy');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      var lat = pos.coords.latitude, lng = pos.coords.longitude;
+      // Free, keyless reverse geocoder (client-side).
+      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lng + '&localityLanguage=en')
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var place = j.city || j.locality || j.principalSubdivision || '';
+          var country = j.countryName || '';
+          var val = [place, country].filter(Boolean).join(', ');
+          cityInput.value = val || (lat.toFixed(3) + ', ' + lng.toFixed(3));
+          setMsg(msg, val ? 'Found you — edit if needed, then Check In.' : 'Got coordinates — type your city.', 'ok');
+        })
+        .catch(function () {
+          cityInput.value = lat.toFixed(3) + ', ' + lng.toFixed(3);
+          setMsg(msg, 'Could not name the place — type your city.', 'err');
+        });
+    }, function (err) {
+      setMsg(msg, err.code === 1 ? 'Location permission denied — type your city instead.' : 'Could not get location — type it in.', 'err');
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  });
+
+  // ── Check in ──
+  var btn = document.getElementById('checkin');
+  btn.addEventListener('click', function () {
+    var city = cityInput.value.trim();
+    if (!city) { setMsg(msg, 'Add your city first.', 'err'); return; }
+    var pin = currentPin();
+    if (!pin) { setMsg(msg, 'Missing PIN — unlock again.', 'err'); return; }
+
+    btn.disabled = true;
+    setMsg(msg, 'Checking in…', 'busy');
+    fetch('/api/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: pin, city: city, live: live })
+    })
+      .then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.j.ok) {
+          setMsg(msg, '✓ Checked in to ' + res.j.city + '. Live in ~30s.', 'ok');
+        } else if (res.status === 401) {
+          localStorage.removeItem(LS_PIN);
+          setMsg(msg, 'Wrong PIN. Tap "Forget PIN" and try again.', 'err');
+        } else {
+          setMsg(msg, res.j.error || 'Something went wrong.', 'err');
+        }
+      })
+      .catch(function () { setMsg(msg, 'Network error — try again.', 'err'); })
+      .then(function () { btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>
