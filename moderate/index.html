@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moderate · Dougie</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0a0c; --bg2:#131316; --card:#18181c; --line:#26262c; --pink:#ff2ec4; --cyan:#00f0ff;
+    --green:#3ddc84; --red:#ff6b6b; --text:#f5f5f2; --muted:#9c9ca6;
+    --fd:'Anton', Impact, sans-serif; --fb:'Space Grotesk', system-ui, -apple-system, sans-serif;}
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--fb); min-height:100vh;
+    -webkit-font-smoothing:antialiased; padding:max(20px, env(safe-area-inset-top)) 16px 40px}
+  .wrap{max-width:640px; margin:0 auto}
+  h1{font-family:var(--fd); font-size:28px; letter-spacing:.5px; margin:0 0 2px; text-align:center}
+  h1 span{color:var(--pink)}
+  .sub{color:var(--muted); font-size:13px; text-align:center; margin:0 0 22px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:14px}
+  label{font-size:12px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase}
+  input[type=password]{width:100%; background:var(--bg2); border:1px solid var(--line); border-radius:12px;
+    padding:15px 16px; color:var(--text); font-family:var(--fb); font-size:17px}
+  input:focus{outline:none; border-color:var(--pink)}
+  button{cursor:pointer; font-family:var(--fb); font-weight:700; border-radius:12px; border:1px solid transparent}
+  .btn-primary{background:var(--pink); color:var(--bg); font-size:16px; padding:15px; width:100%}
+  .queue{display:flex; flex-direction:column; gap:16px}
+  .item{background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+  .item img{width:100%; display:block; max-height:60vh; object-fit:cover; background:#000}
+  .item .meta{padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:12px}
+  .item .cap{font-size:14px}
+  .item .acts{display:flex; gap:8px; flex:0 0 auto}
+  .item .acts button{padding:10px 14px; font-size:13px}
+  .approve{background:var(--green); color:#062b16}
+  .reject{background:transparent; color:var(--red); border-color:var(--red)}
+  .msg{text-align:center; color:var(--muted); font-size:14px; padding:20px}
+  .msg.err{color:var(--red)}
+  .bar{display:flex; justify-content:center; gap:16px; margin-top:18px}
+  .bar a{color:var(--muted); font-size:12px; text-decoration:none; cursor:pointer}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span>@</span>moderate</h1>
+  <p class="sub">Approve or reject community Wall of Fame photos</p>
+
+  <div class="card" id="pin-card">
+    <div>
+      <label for="pin">Enter your PIN</label>
+      <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="••••" style="margin-top:8px">
+    </div>
+    <button class="btn-primary" id="unlock">Unlock</button>
+    <p class="msg err" id="pin-msg" style="padding:0"></p>
+  </div>
+
+  <div id="panel" hidden>
+    <div class="msg" id="status">Loading queue…</div>
+    <div class="queue" id="queue"></div>
+    <div class="bar"><a id="refresh">Refresh</a><a id="forget">Forget PIN</a></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var LS_PIN = 'dougie_checkin_pin';
+  var pinCard = document.getElementById('pin-card');
+  var panel = document.getElementById('panel');
+  var pinInput = document.getElementById('pin');
+  var pinMsg = document.getElementById('pin-msg');
+  var queue = document.getElementById('queue');
+  var status = document.getElementById('status');
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function currentPin(){ return localStorage.getItem(LS_PIN) || pinInput.value; }
+  function show(){ pinCard.hidden = true; panel.hidden = false; load(); }
+
+  document.getElementById('unlock').addEventListener('click', function () {
+    var v = pinInput.value.trim(); if (!v) { pinMsg.textContent = 'Enter your PIN.'; return; }
+    localStorage.setItem(LS_PIN, v); pinMsg.textContent = ''; show();
+  });
+  pinInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('unlock').click(); });
+  document.getElementById('forget').addEventListener('click', function () {
+    localStorage.removeItem(LS_PIN); panel.hidden = true; pinCard.hidden = false; pinInput.value = ''; pinInput.focus();
+  });
+  document.getElementById('refresh').addEventListener('click', load);
+  if (localStorage.getItem(LS_PIN)) show();
+
+  function load() {
+    status.textContent = 'Loading queue…'; status.className = 'msg'; status.hidden = false; queue.innerHTML = '';
+    fetch('/wall.json?cb=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (list) {
+        var pending = (Array.isArray(list) ? list : []).filter(function (x) { return x && !x.approved; });
+        if (!pending.length) { status.textContent = 'Nothing pending. 🎉'; return; }
+        status.hidden = true;
+        pending.forEach(function (p) {
+          var el = document.createElement('div');
+          el.className = 'item';
+          el.innerHTML =
+            '<img src="' + esc(p.image) + '" alt="pending photo">' +
+            '<div class="meta"><span class="cap">' + esc(p.caption || '—') + '</span>' +
+            '<span class="acts"><button class="approve" data-id="' + esc(p.id) + '" data-a="approve">Approve</button>' +
+            '<button class="reject" data-id="' + esc(p.id) + '" data-a="reject">Reject</button></span></div>';
+          queue.appendChild(el);
+        });
+      })
+      .catch(function () { status.textContent = 'Could not load the queue.'; status.className = 'msg err'; });
+  }
+
+  queue.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-a]'); if (!b) return;
+    var id = b.getAttribute('data-id'), action = b.getAttribute('data-a');
+    var item = b.closest('.item');
+    b.parentNode.querySelectorAll('button').forEach(function (x) { x.disabled = true; });
+    fetch('/api/moderate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: currentPin(), id: id, action: action })
+    }).then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.j.ok) {
+          item.style.transition = 'opacity .2s'; item.style.opacity = '0';
+          setTimeout(function () { item.remove(); if (!queue.children.length) { status.hidden = false; status.textContent = 'Nothing pending. 🎉'; status.className = 'msg'; } }, 200);
+        } else if (res.status === 401) {
+          localStorage.removeItem(LS_PIN); alert('Wrong PIN — unlock again.'); location.reload();
+        } else {
+          alert(res.j.error || 'Failed.'); b.parentNode.querySelectorAll('button').forEach(function (x) { x.disabled = false; });
+        }
+      })
+      .catch(function () { alert('Network error.'); b.parentNode.querySelectorAll('button').forEach(function (x) { x.disabled = false; }); });
+  });
+})();
+</script>
+</body>
+</html>

@@ -75,12 +75,17 @@ It's static files, so drop the folder on any static host:
 - **GitHub Pages** — push and enable Pages on the branch.
 - **Vercel** — import as a static project (no framework preset).
 
-## Still to wire up (was UI-only in the design)
+## Selfie uploads (live)
 
-- **Upload submissions.** The "Upload Your Selfie" modal shows a success state
-  but stores nothing. To make it real, POST the photo + name + location to an
-  endpoint / storage bucket, and ideally have the Wall of Fame read approved
-  submissions from there instead of `content.js`.
+Real photo uploads are wired up via Vercel Blob + serverless functions — see
+**[UPLOADS.md](UPLOADS.md)**:
+
+- **Post a Selfie** (`/post`) — your own photos into the Daily Drop feed (PIN).
+- **Community uploads** — the public "Upload It" button; submissions queue up
+  and appear on the Wall of Fame after you approve them at **`/moderate`**.
+
+The homepage shows real `feed.json` posts and approved `wall.json` photos,
+falling back to the `content.js` samples until there are real ones.
 
 ## Notes / credits
 

@@ -373,15 +373,16 @@
     <!-- Form state -->
     <div id="upload-form">
       <h3>Upload Your Selfie</h3>
-      <p class="note">UI preview only — submissions aren't stored yet.</p>
+      <p class="note">Snapped one with me? Add it here — it hits the Wall of Fame once I approve it.</p>
       <label class="drop-zone" id="drop-zone">
         <span data-icon="upload-cloud"></span>
-        <span id="drop-zone-label">Drop your selfie here</span>
+        <span id="drop-zone-label">Tap to add your selfie</span>
         <input type="file" accept="image/*" class="visually-hidden" id="file-input">
       </label>
       <input class="field" type="text" placeholder="Your name" id="up-name" style="margin-top:16px; width:100%">
       <input class="field" type="text" placeholder="Where'd you meet me?" id="up-where" style="margin-top:16px; width:100%">
-      <button class="btn btn-pink" id="submit-upload" style="margin-top:16px; width:100%; justify-content:center">
+      <p class="note" id="up-msg" style="text-align:center; margin:4px 0 0; min-height:16px"></p>
+      <button class="btn btn-pink" id="submit-upload" style="margin-top:12px; width:100%; justify-content:center">
         <span data-icon="send"></span> Submit
       </button>
     </div>
@@ -390,7 +391,7 @@
     <div id="upload-success" class="upload-success" hidden>
       <span data-icon="check-circle"></span>
       <h3>Nice One!</h3>
-      <p class="note" style="text-align:center">Demo submission received — this is a UI preview. Live uploads land here once the backend's wired up.</p>
+      <p class="note" style="text-align:center">Thanks! Your photo's in the queue — it'll show up on the Wall of Fame once I approve it.</p>
       <button class="btn btn-pink" data-close style="justify-content:center">Close</button>
     </div>
   </div>
@@ -484,30 +485,57 @@
     .then(function (j) { if (j && typeof j === 'object') applyStatus(j.live !== false, j.city || cfg.currentLocation, j.liveLabel, j.offLabel); })
     .catch(function () { /* keep content.js defaults */ });
 
-  // ── Render Daily Drop ────────────────────────────────────────────
+  // ── Daily Drop ───────────────────────────────────────────────────
+  // Shows real posts from feed.json (added by the Post-a-Selfie app); falls
+  // back to the content.js samples until you've posted something.
   var dropRow = document.getElementById('drop-row');
-  (C.drops || []).forEach(function (d) {
-    var card = document.createElement('div');
-    card.className = 'drop-card';
-    card.innerHTML =
-      photoHTML(d) +
-      '<div class="drop-meta"><span class="drop-time">' + esc(d.time) + '</span>' +
-      '<span class="tag">' + esc(d.location) + '</span></div>' +
-      '<p>' + esc(d.caption) + '</p>';
-    dropRow.appendChild(card);
-  });
+  function renderDrops(list) {
+    dropRow.innerHTML = '';
+    (list || []).forEach(function (d) {
+      var card = document.createElement('div');
+      card.className = 'drop-card';
+      card.innerHTML =
+        photoHTML(d) +
+        '<div class="drop-meta"><span class="drop-time">' + esc(d.time) + '</span>' +
+        '<span class="tag">' + esc(d.location) + '</span></div>' +
+        '<p>' + esc(d.caption) + '</p>';
+      dropRow.appendChild(card);
+    });
+    mountIcons(dropRow);
+  }
+  renderDrops(C.drops || []);
+  fetch('feed.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (list) { if (Array.isArray(list) && list.length) renderDrops(list); })
+    .catch(function () {});
 
-  // ── Render Wall of Fame ──────────────────────────────────────────
+  // ── Wall of Fame ─────────────────────────────────────────────────
+  // Shows APPROVED community photos from wall.json; falls back to samples.
   var wallGrid = document.getElementById('wall-grid');
-  (C.wall || []).forEach(function (w) {
-    var tile = document.createElement('div');
-    tile.className = 'wall-tile';
-    var h = (typeof w.h === 'number' ? w.h : 260) + 'px';
-    tile.innerHTML =
-      photoHTML(w, 'height:' + h) +
-      '<div class="wall-cap"><span data-icon="map-pin"></span><span>' + esc(w.caption) + '</span></div>';
-    wallGrid.appendChild(tile);
-  });
+  var WALL_H = [260, 320, 220, 300, 240, 280, 230, 310, 250];
+  function renderWall(list) {
+    wallGrid.innerHTML = '';
+    (list || []).forEach(function (w, i) {
+      var tile = document.createElement('div');
+      tile.className = 'wall-tile';
+      var h = (typeof w.h === 'number' ? w.h : WALL_H[i % WALL_H.length]) + 'px';
+      tile.innerHTML =
+        photoHTML(w, 'height:' + h) +
+        '<div class="wall-cap"><span data-icon="map-pin"></span><span>' + esc(w.caption) + '</span></div>';
+      wallGrid.appendChild(tile);
+    });
+    mountIcons(wallGrid);
+  }
+  renderWall(C.wall || []);
+  fetch('wall.json', { cache: 'no-store' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (list) {
+      if (Array.isArray(list)) {
+        var approved = list.filter(function (x) { return x && x.approved; });
+        if (approved.length) renderWall(approved);
+      }
+    })
+    .catch(function () {});
 
   // ── QR code (client-side, from config) ───────────────────────────
   var qrRendered = false;
@@ -568,22 +596,52 @@
   var fileInput = document.getElementById('file-input');
   var dropZone = document.getElementById('drop-zone');
   var dzLabel = document.getElementById('drop-zone-label');
+  var selectedFile = null;
+  function upMsg(t, err) {
+    var el = document.getElementById('up-msg');
+    el.textContent = t || '';
+    el.style.color = err ? '#ff6b6b' : 'var(--muted)';
+  }
   function resetUpload() {
     document.getElementById('upload-form').hidden = false;
     document.getElementById('upload-success').hidden = true;
     document.getElementById('up-name').value = '';
     document.getElementById('up-where').value = '';
     if (fileInput) fileInput.value = '';
+    selectedFile = null;
+    upMsg('');
     dropZone.classList.remove('has-file');
     dropZone.querySelectorAll('img').forEach(function (i) { i.remove(); });
-    dzLabel.textContent = 'Drop your selfie here';
+    dzLabel.textContent = 'Tap to add your selfie';
     dzLabel.style.display = '';
     dropZone.querySelector('[data-icon]').style.display = '';
+  }
+  // Shrink big phone photos before upload so the request stays small and
+  // storage stays cheap (longest side <= 1600px, JPEG q0.85).
+  function downscale(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+        var cw = Math.max(1, Math.round(img.naturalWidth * scale));
+        var ch = Math.max(1, Math.round(img.naturalHeight * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = cw; canvas.height = ch;
+        canvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+      img.src = url;
+    });
   }
   if (fileInput) {
     fileInput.addEventListener('change', function () {
       var f = fileInput.files && fileInput.files[0];
       if (!f) return;
+      selectedFile = f;
+      upMsg('');
       dropZone.classList.add('has-file');
       var reader = new FileReader();
       reader.onload = function (ev) {
@@ -598,10 +656,31 @@
     });
   }
   document.getElementById('submit-upload').addEventListener('click', function () {
-    // UI-only: no network call. Swap to the success state.
-    document.getElementById('upload-form').hidden = true;
-    document.getElementById('upload-success').hidden = false;
-    mountIcons(document.getElementById('upload-success'));
+    var btn = this;
+    if (!selectedFile) { upMsg('Pick a photo first.', true); return; }
+    btn.disabled = true;
+    upMsg('Uploading…', false);
+    downscale(selectedFile, 1600, 0.85).then(function (dataUrl) {
+      return fetch('/api/submit', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('up-name').value.trim(),
+          where: document.getElementById('up-where').value.trim(),
+          image: dataUrl
+        })
+      });
+    }).then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.j.ok) {
+          document.getElementById('upload-form').hidden = true;
+          document.getElementById('upload-success').hidden = false;
+          mountIcons(document.getElementById('upload-success'));
+        } else {
+          upMsg((res.j.error || 'Upload failed.') + (res.j.detail ? ' — ' + res.j.detail : ''), true);
+        }
+      })
+      .catch(function () { upMsg('Network error — try again.', true); })
+      .then(function () { btn.disabled = false; });
   });
 
   // ── Go ───────────────────────────────────────────────────────────

@@ -1,0 +1,9 @@
+{
+  "name": "dougie",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Take a Selfie with Dougie — landing page + check-in/upload functions",
+  "dependencies": {
+    "@vercel/blob": "^2.8.0"
+  }
+}

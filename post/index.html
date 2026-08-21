@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Post a Selfie · Dougie</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Post Selfie">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0a0a0c; --bg2:#131316; --card:#18181c; --line:#26262c;
+    --pink:#ff2ec4; --cyan:#00f0ff; --amber:#ff9c3d; --text:#f5f5f2; --muted:#9c9ca6;
+    --fd:'Anton', Impact, sans-serif; --fb:'Space Grotesk', system-ui, -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:var(--fb);
+    min-height:100vh; min-height:100dvh; -webkit-font-smoothing:antialiased;
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:max(24px, env(safe-area-inset-top)) 20px 40px;}
+  .app{width:100%; max-width:420px; margin-top:5vh}
+  .brand{font-family:var(--fd); font-size:30px; letter-spacing:.5px; text-align:center; margin:0 0 4px}
+  .brand span{color:var(--pink)}
+  .sub{color:var(--muted); font-size:13px; text-align:center; margin:0 0 24px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:22px; display:flex; flex-direction:column; gap:16px}
+  label{font-size:12px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase}
+  .field{display:flex; flex-direction:column; gap:8px}
+  input[type=text], input[type=password]{width:100%; background:var(--bg2); border:1px solid var(--line);
+    border-radius:12px; padding:15px 16px; color:var(--text); font-family:var(--fb); font-size:17px}
+  input:focus{outline:none; border-color:var(--pink)}
+  button{cursor:pointer; font-family:var(--fb); font-weight:700; border-radius:12px; border:1px solid transparent;
+    transition:box-shadow .18s, transform .12s, background .18s, border-color .18s}
+  button:active{transform:translateY(1px)}
+  .btn-primary{background:var(--pink); color:var(--bg); font-size:17px; padding:16px; width:100%}
+  .btn-primary:hover{box-shadow:0 0 26px rgba(255,46,196,.5)}
+  .btn-primary:disabled{opacity:.5; cursor:default; box-shadow:none}
+  .btn-ghost{background:var(--bg2); color:var(--text); border-color:var(--line); font-size:15px; padding:13px 16px;
+    width:100%; display:flex; align-items:center; justify-content:center; gap:10px}
+  .btn-ghost:hover{border-color:var(--cyan)}
+  .btn-ghost svg{width:18px; height:18px; color:var(--cyan)}
+  .photo-pick{position:relative; width:100%; aspect-ratio:4/5; max-height:300px; border-radius:14px;
+    border:1.5px dashed var(--line); background:var(--bg2); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px; color:var(--muted); cursor:pointer; overflow:hidden; text-align:center; padding:16px}
+  .photo-pick.has-file{border-style:solid; border-color:var(--pink)}
+  .photo-pick svg{width:34px; height:34px; opacity:.6}
+  .photo-pick img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  .msg{font-size:14px; text-align:center; min-height:20px; margin:2px 0 0}
+  .msg.ok{color:var(--cyan)} .msg.err{color:#ff6b6b} .msg.busy{color:var(--muted)}
+  .foot{text-align:center; margin-top:16px; display:flex; gap:16px; justify-content:center}
+  .foot a{color:var(--muted); font-size:12px; text-decoration:none; cursor:pointer}
+  .foot a:hover{color:var(--text)}
+  [hidden]{display:none !important}
+  .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1 class="brand"><span>@</span>post a selfie</h1>
+  <p class="sub">Drop a new one into your Daily Drop feed</p>
+
+  <!-- PIN gate -->
+  <div class="card" id="pin-card">
+    <div class="field">
+      <label for="pin">Enter your PIN</label>
+      <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="••••">
+    </div>
+    <button class="btn-primary" id="unlock">Unlock</button>
+    <p class="msg err" id="pin-msg"></p>
+  </div>
+
+  <!-- Post form -->
+  <div class="card" id="post-card" hidden>
+    <label class="photo-pick" id="pick">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg>
+      <span id="pick-label">Tap to choose a photo</span>
+      <input type="file" accept="image/*" class="visually-hidden" id="file">
+    </label>
+
+    <div class="field">
+      <label for="caption">Caption</label>
+      <input type="text" id="caption" maxlength="140" placeholder="What's happening?" autocomplete="off">
+    </div>
+
+    <button class="btn-ghost" id="gps" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      Use my location
+    </button>
+    <div class="field">
+      <label for="location">Location tag</label>
+      <input type="text" id="location" maxlength="40" placeholder="e.g. DENVER" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="time">Time label</label>
+      <input type="text" id="time" maxlength="24" placeholder="TODAY" autocomplete="off">
+    </div>
+
+    <button class="btn-primary" id="post">Post to feed</button>
+    <p class="msg" id="msg"></p>
+  </div>
+
+  <div class="foot">
+    <a id="forget" hidden>Forget PIN</a>
+    <a href="/checkin/">Check-In app →</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var LS_PIN = 'dougie_checkin_pin'; // shared PIN across the apps
+
+  var pinCard = document.getElementById('pin-card');
+  var postCard = document.getElementById('post-card');
+  var pinInput = document.getElementById('pin');
+  var pinMsg = document.getElementById('pin-msg');
+  var fileInput = document.getElementById('file');
+  var pick = document.getElementById('pick');
+  var pickLabel = document.getElementById('pick-label');
+  var msg = document.getElementById('msg');
+  var forget = document.getElementById('forget');
+  var selectedFile = null;
+
+  function setMsg(t, kind) { msg.textContent = t || ''; msg.className = 'msg' + (kind ? ' ' + kind : ''); }
+
+  function showPost() { pinCard.hidden = true; postCard.hidden = false; forget.hidden = false; }
+  function currentPin() { return localStorage.getItem(LS_PIN) || pinInput.value; }
+
+  document.getElementById('unlock').addEventListener('click', function () {
+    var v = pinInput.value.trim();
+    if (!v) { pinMsg.textContent = 'Enter your PIN.'; return; }
+    localStorage.setItem(LS_PIN, v); pinMsg.textContent = ''; showPost();
+  });
+  pinInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('unlock').click(); });
+  forget.addEventListener('click', function () {
+    localStorage.removeItem(LS_PIN); postCard.hidden = true; pinCard.hidden = false; forget.hidden = true;
+    pinInput.value = ''; pinInput.focus();
+  });
+  if (localStorage.getItem(LS_PIN)) showPost();
+
+  // Photo pick + preview
+  fileInput.addEventListener('change', function () {
+    var f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+    selectedFile = f; setMsg('');
+    pick.classList.add('has-file');
+    var r = new FileReader();
+    r.onload = function (ev) {
+      pick.querySelectorAll('img').forEach(function (i) { i.remove(); });
+      var img = document.createElement('img'); img.src = ev.target.result;
+      pick.querySelector('svg').style.display = 'none'; pickLabel.style.display = 'none';
+      pick.appendChild(img);
+    };
+    r.readAsDataURL(f);
+  });
+
+  // GPS → location tag
+  document.getElementById('gps').addEventListener('click', function () {
+    if (!navigator.geolocation) { setMsg('No location support.', 'err'); return; }
+    setMsg('Getting your location…', 'busy');
+    navigator.geolocation.getCurrentPosition(function (pos) {
+      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + pos.coords.latitude + '&longitude=' + pos.coords.longitude + '&localityLanguage=en')
+        .then(function (r) { return r.json(); })
+        .then(function (j) {
+          var place = j.city || j.locality || j.principalSubdivision || '';
+          document.getElementById('location').value = (place || '').toUpperCase();
+          setMsg(place ? '' : 'Type your location tag.', place ? '' : 'busy');
+        }).catch(function () { setMsg('Type your location tag.', 'err'); });
+    }, function () { setMsg('Location off — type it in.', 'err'); }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  });
+
+  // Downscale before upload (longest side <= 1600, JPEG q0.85)
+  function downscale(file, maxDim, quality) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image(); var url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+        var cw = Math.max(1, Math.round(img.naturalWidth * scale));
+        var ch = Math.max(1, Math.round(img.naturalHeight * scale));
+        var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+        c.getContext('2d').drawImage(img, 0, 0, cw, ch);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+      img.src = url;
+    });
+  }
+
+  var postBtn = document.getElementById('post');
+  postBtn.addEventListener('click', function () {
+    if (!selectedFile) { setMsg('Choose a photo first.', 'err'); return; }
+    var caption = document.getElementById('caption').value.trim();
+    if (!caption) { setMsg('Add a caption.', 'err'); return; }
+    var pin = currentPin();
+    if (!pin) { setMsg('Missing PIN — unlock again.', 'err'); return; }
+
+    postBtn.disabled = true; setMsg('Posting…', 'busy');
+    downscale(selectedFile, 1600, 0.85).then(function (dataUrl) {
+      return fetch('/api/post', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pin: pin, caption: caption,
+          location: document.getElementById('location').value.trim(),
+          time: document.getElementById('time').value.trim() || 'TODAY',
+          image: dataUrl
+        })
+      });
+    }).then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.j.ok) {
+          setMsg('✓ Posted! Live on your feed in ~30s.', 'ok');
+          selectedFile = null; pick.classList.remove('has-file');
+          pick.querySelectorAll('img').forEach(function (i) { i.remove(); });
+          pick.querySelector('svg').style.display = ''; pickLabel.style.display = '';
+          document.getElementById('caption').value = '';
+          fileInput.value = '';
+        } else if (res.status === 401) {
+          localStorage.removeItem(LS_PIN);
+          setMsg('Wrong PIN. Tap "Forget PIN" and re-enter.', 'err');
+        } else {
+          setMsg((res.j.error || 'Failed.') + (res.j.detail ? ' — ' + res.j.detail : ''), 'err');
+        }
+      })
+      .catch(function () { setMsg('Network error — try again.', 'err'); })
+      .then(function () { postBtn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>
