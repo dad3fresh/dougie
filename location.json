@@ -1,6 +1,6 @@
 {
   "city": "Denver, CO",
-  "live": false,
+  "live": true,
   "updated": "2026-08-21",
-  "liveLabel": "Pepping for next adventurer!"
+  "liveLabel": "Live in Denver, CO"
 }
