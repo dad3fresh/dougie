@@ -14,7 +14,7 @@ with that `sha`.
 
 1. On github.com: **Settings → Developer settings → Personal access tokens →
    Fine-grained tokens → Generate new token.**
-2. **Repository access:** Only select repositories → `takeaselfiewithme`.
+2. **Repository access:** Only select repositories → `dougie`.
 3. **Permissions:** Repository permissions → **Contents → Read and write**
    (leave everything else "No access").
 4. Set an expiration (e.g. 90 days — covers the trip), generate, and **copy the
@@ -54,7 +54,7 @@ place of `LiveFlag` in step 8.
 
 ### Step 10 — GET (read current sha)
 
-- **URL:** `https://api.github.com/repos/OWNER/takeaselfiewithme/contents/location.json`
+- **URL:** `https://api.github.com/repos/OWNER/dougie/contents/location.json`
 - **Method:** `GET`
 - **Headers:**
   - `Authorization` = `Bearer YOUR_TOKEN`
