@@ -224,7 +224,8 @@
           localStorage.removeItem(LS_PIN);
           setMsg(msg, 'Wrong PIN. Tap "Forget PIN" and try again.', 'err');
         } else {
-          setMsg(msg, res.j.error || 'Something went wrong.', 'err');
+          var detail = res.j.detail ? ' — ' + res.j.detail : '';
+          setMsg(msg, (res.j.error || 'Something went wrong.') + detail, 'err');
         }
       })
       .catch(function () { setMsg(msg, 'Network error — try again.', 'err'); })
