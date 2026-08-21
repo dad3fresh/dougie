@@ -56,8 +56,11 @@ icon and opens full-screen like an app.
 2. First time only: enter your PIN (remembered on the device afterward).
 3. Tap **Use my current location** → allow location → it fills in your city
    (edit if you like).
-4. Choose **LIVE IN ASIA** or **ON THE MOVE**.
-5. Tap **Check In**. Your site updates in ~30s.
+4. Choose **LIVE** or **ON THE MOVE**.
+5. (Optional) Set **Live badge text** — the words on the badge when you're LIVE
+   (e.g. "LIVE IN DENVER"). It's prefilled with the current text; leave it as-is
+   to keep it. The default lives in `content.js` (`config.liveLabel`).
+6. Tap **Check In**. Your site updates in ~30s.
 
 "Forget PIN on this device" clears the stored PIN (e.g. if you mistype it or
 lend someone the phone).

@@ -63,19 +63,33 @@ module.exports = async (req, res) => {
   };
 
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
-  const newContent = JSON.stringify({ city: city, live: live, updated: today }, null, 2) + '\n';
 
   try {
-    // 1) read current file to get its sha (required to update an existing file)
-    let sha;
+    // 1) read current file: its sha (needed to update an existing file) AND its
+    //    JSON, so optional fields like liveLabel survive check-ins that don't set them.
+    let sha, existing = {};
     const getRes = await fetch(api + '?ref=' + encodeURIComponent(branch), { headers: ghHeaders });
     if (getRes.status === 200) {
       const j = await getRes.json();
       sha = j.sha;
+      if (j.content) {
+        try { existing = JSON.parse(Buffer.from(j.content, 'base64').toString('utf8')) || {}; }
+        catch (e) { existing = {}; }
+      }
     } else if (getRes.status !== 404) {
       const t = await getRes.text();
       return res.status(502).json({ ok: false, error: 'GitHub read failed', detail: t.slice(0, 200) });
     }
+
+    // Merge: keep existing fields, update the ones this check-in provides.
+    const merged = Object.assign({}, existing, { city: city, live: live, updated: today });
+    if (typeof body.liveLabel === 'string' && body.liveLabel.trim()) {
+      merged.liveLabel = body.liveLabel.trim().slice(0, 60);
+    }
+    if (typeof body.offLabel === 'string' && body.offLabel.trim()) {
+      merged.offLabel = body.offLabel.trim().slice(0, 60);
+    }
+    const newContent = JSON.stringify(merged, null, 2) + '\n';
 
     // 2) write the new contents
     const putBody = {

@@ -46,6 +46,7 @@
   }
   input:focus{outline:none; border-color:var(--pink)}
   .field{display:flex; flex-direction:column; gap:8px}
+  .hint{font-size:12px; color:var(--muted); letter-spacing:0; text-transform:none; font-weight:400}
 
   button{cursor:pointer; font-family:var(--fb); font-weight:700; border-radius:12px; border:1px solid transparent; transition:box-shadow .18s, transform .12s, background .18s, border-color .18s}
   button:active{transform:translateY(1px)}
@@ -104,9 +105,15 @@
     <div class="field">
       <label>Status</label>
       <div class="seg" id="seg">
-        <button type="button" class="live" data-live="true" aria-pressed="true">LIVE IN ASIA</button>
+        <button type="button" class="live" data-live="true" aria-pressed="true">LIVE</button>
         <button type="button" class="move" data-live="false" aria-pressed="false">ON THE MOVE</button>
       </div>
+    </div>
+
+    <div class="field">
+      <label for="livelabel">Live badge text</label>
+      <input type="text" id="livelabel" placeholder="LIVE IN ASIA" autocomplete="off" maxlength="60">
+      <span class="hint">Shows on the badge when you're set to LIVE. Leave blank to keep the current one.</span>
     </div>
 
     <button class="btn-primary" id="checkin">Check In</button>
@@ -138,13 +145,16 @@
   }
 
   // ── Live toggle ──
+  function setLive(val) {
+    live = !!val;
+    seg.querySelectorAll('button').forEach(function (x) {
+      x.setAttribute('aria-pressed', String((x.getAttribute('data-live') === 'true') === live));
+    });
+  }
   seg.addEventListener('click', function (e) {
     var b = e.target.closest('button[data-live]');
     if (!b) return;
-    live = b.getAttribute('data-live') === 'true';
-    seg.querySelectorAll('button').forEach(function (x) {
-      x.setAttribute('aria-pressed', String(x === b));
-    });
+    setLive(b.getAttribute('data-live') === 'true');
   });
 
   // ── PIN gate (client-side gate only; the PIN is really checked by the server) ──
@@ -152,6 +162,19 @@
     pinCard.hidden = true;
     checkinCard.hidden = false;
     forget.hidden = false;
+    prefill();
+  }
+  // Pull the current location.json so the form reflects what's live now:
+  // the live/on-the-move toggle and the existing badge text.
+  function prefill() {
+    fetch('/location.json?cb=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j) return;
+        if (typeof j.live === 'boolean') setLive(j.live);
+        if (j.liveLabel) document.getElementById('livelabel').value = j.liveLabel;
+      })
+      .catch(function () {});
   }
   function currentPin() { return localStorage.getItem(LS_PIN) || pinInput.value; }
 
@@ -209,12 +232,14 @@
     var pin = currentPin();
     if (!pin) { setMsg(msg, 'Missing PIN — unlock again.', 'err'); return; }
 
+    var liveLabel = document.getElementById('livelabel').value.trim();
+
     btn.disabled = true;
     setMsg(msg, 'Checking in…', 'busy');
     fetch('/api/checkin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pin: pin, city: city, live: live })
+      body: JSON.stringify({ pin: pin, city: city, live: live, liveLabel: liveLabel })
     })
       .then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
       .then(function (res) {

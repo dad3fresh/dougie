@@ -18,6 +18,8 @@ window.CONTENT = {
   config: {
     isLive: true,                                   // fallback badge state (location.json.live overrides)
     currentLocation: "Bangkok, Thailand",           // fallback location (location.json.city overrides)
+    liveLabel: "LIVE IN ASIA",                      // badge text when live  (location.json.liveLabel overrides; editable in the Check-In app)
+    offLabel: "ON THE MOVE",                        // badge text when not live (location.json.offLabel overrides)
     qrTarget: "https://www.instagram.com/dug3fresh/" // URL the QR code points at
   },
 
