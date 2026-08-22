@@ -54,9 +54,8 @@ Vercel → **Deployments → Redeploy** (or push). The redeploy installs the new
 2. Choose the destination at the top: **Daily Drop** (your feed) or **Wall of
    Fame**. Your own wall posts are auto-approved — no moderation needed.
 3. Tap the photo box → choose a photo → add a caption.
-4. For **Daily Drop** only: optionally tap **Use my location** for the tag and
-   set the time label (defaults to "TODAY"). (The Wall has neither, so those
-   fields hide when you pick Wall of Fame.)
+4. Optionally tap **Use my location** for the location tag and set the time
+   label (defaults to "TODAY"). Both destinations support these.
 5. **Post** → live on the site in ~30s.
 
 The **Your recent posts** list below shows both your feed and wall photos

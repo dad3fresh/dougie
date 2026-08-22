@@ -27,8 +27,9 @@ module.exports = async (req, res) => {
   try {
     const url = await uploadBlob(dest + '/' + newId() + '.' + img.ext, img.buffer, img.contentType);
     if (dest === 'wall') {
-      // Your own wall post — pre-approved, so it shows immediately.
-      const entry = { id: newId(), caption: caption, image: url, approved: true, ts: Date.now() };
+      // Your own wall post — pre-approved, so it shows immediately. Same
+      // time/location fields as the feed.
+      const entry = { id: newId(), time: time.toUpperCase(), location: location.toUpperCase(), caption: caption, image: url, approved: true, ts: Date.now() };
       const { sha, data } = await ghGetJson('wall.json');
       const list = Array.isArray(data) ? data : [];
       const next = [entry].concat(list).slice(0, 500);

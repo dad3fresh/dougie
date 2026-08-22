@@ -45,11 +45,9 @@ module.exports = async (req, res) => {
       const caption = (body.caption || '').toString().trim().slice(0, 140);
       if (!caption) return res.status(400).json({ ok: false, error: 'Caption cannot be empty.' });
       item.caption = caption;
-      // Location/time only apply to feed posts (the wall has neither).
-      if (which === 'feed') {
-        if (typeof body.location === 'string') item.location = body.location.trim().slice(0, 40).toUpperCase();
-        if (typeof body.time === 'string') item.time = (body.time.trim().slice(0, 24) || 'TODAY').toUpperCase();
-      }
+      // Feed and wall posts both carry time/location now.
+      if (typeof body.location === 'string') item.location = body.location.trim().slice(0, 40).toUpperCase();
+      if (typeof body.time === 'string') item.time = (body.time.trim().slice(0, 24) || 'TODAY').toUpperCase();
       next = list;
       message = 'Edit ' + which + ' photo: ' + caption;
     }

@@ -188,7 +188,6 @@
     var b = e.target.closest('button[data-dest]'); if (!b) return;
     dest = b.getAttribute('data-dest');
     destSeg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-    feedOnly.hidden = (dest === 'wall');
     document.getElementById('post').textContent = (dest === 'wall') ? 'Post to Wall of Fame' : 'Post to Daily Drop';
   });
 
@@ -300,14 +299,12 @@
         var isWall = p._list === 'wall';
         var el = document.createElement('div');
         el.className = 'mitem'; el.setAttribute('data-id', p.id); el.setAttribute('data-list', p._list);
-        var meta = isWall
-          ? '<span class="chip wall">WALL</span>'
-          : '<span class="chip feed">FEED</span> ' + esc(p.time || '') + (p.location ? ' · ' + esc(p.location) : '');
-        var editFields = '<input class="mi-cap" type="text" maxlength="140" value="' + esc(p.caption) + '" placeholder="Caption">';
-        if (!isWall) {
-          editFields += '<input class="mi-loc" type="text" maxlength="40" value="' + esc(p.location || '') + '" placeholder="Location">' +
-                        '<input class="mi-time" type="text" maxlength="24" value="' + esc(p.time || '') + '" placeholder="Time (e.g. TODAY)">';
-        }
+        var chip = isWall ? '<span class="chip wall">WALL</span>' : '<span class="chip feed">FEED</span>';
+        var meta = chip + ' ' + esc(p.time || '') + (p.location ? ' · ' + esc(p.location) : '');
+        var editFields =
+          '<input class="mi-cap" type="text" maxlength="140" value="' + esc(p.caption) + '" placeholder="Caption">' +
+          '<input class="mi-loc" type="text" maxlength="40" value="' + esc(p.location || '') + '" placeholder="Location">' +
+          '<input class="mi-time" type="text" maxlength="24" value="' + esc(p.time || '') + '" placeholder="Time (e.g. TODAY)">';
         el.innerHTML =
           '<img class="mthumb" src="' + esc(p.image) + '" alt="">' +
           '<div class="mbody">' +
@@ -345,13 +342,11 @@
       if (!cap) { alert('Caption cannot be empty.'); return; }
       var locEl = item.querySelector('.mi-loc'), timeEl = item.querySelector('.mi-time');
       var loc = locEl ? locEl.value.trim() : '', tm = timeEl ? timeEl.value.trim() : '';
-      var payload = { id: id, list: listName, action: 'edit', caption: cap };
-      if (listName === 'feed') { payload.location = loc; payload.time = tm; }
+      var payload = { id: id, list: listName, action: 'edit', caption: cap, location: loc, time: tm };
       manageAction(payload, e.target, function () {
         item.querySelector('.mcap').textContent = cap;
-        if (listName === 'feed') {
-          item.querySelector('.mmeta').innerHTML = '<span class="chip feed">FEED</span> ' + esc((tm || '').toUpperCase()) + (loc ? ' · ' + esc(loc.toUpperCase()) : '');
-        }
+        var chip = listName === 'wall' ? '<span class="chip wall">WALL</span>' : '<span class="chip feed">FEED</span>';
+        item.querySelector('.mmeta').innerHTML = chip + ' ' + esc((tm || '').toUpperCase()) + (loc ? ' · ' + esc(loc.toUpperCase()) : '');
         form.hidden = true; view.hidden = false;
       });
     }
