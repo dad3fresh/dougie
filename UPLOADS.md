@@ -49,12 +49,19 @@ Vercel → **Deployments → Redeploy** (or push). The redeploy installs the new
 
 ## Using it
 
-**Post your own selfie (Daily Drop):**
+**Post your own selfie:**
 1. Open the **Post Selfie** app → enter PIN.
-2. Tap the photo box → choose a photo.
-3. Add a caption, optionally tap **Use my location** for the tag, adjust the
-   time label (defaults to "TODAY").
-4. **Post to feed** → live on the site in ~30s.
+2. Choose the destination at the top: **Daily Drop** (your feed) or **Wall of
+   Fame**. Your own wall posts are auto-approved — no moderation needed.
+3. Tap the photo box → choose a photo → add a caption.
+4. For **Daily Drop** only: optionally tap **Use my location** for the tag and
+   set the time label (defaults to "TODAY"). (The Wall has neither, so those
+   fields hide when you pick Wall of Fame.)
+5. **Post** → live on the site in ~30s.
+
+The **Your recent posts** list below shows both your feed and wall photos
+(tagged **FEED** / **WALL**), each with Edit and Delete — so you can manage
+either from one place.
 
 **Edit or delete a post:** the Post-a-Selfie app has a **Your recent posts**
 list below the form. Each post has:

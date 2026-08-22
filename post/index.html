@@ -48,6 +48,12 @@
     width:100%; display:flex; align-items:center; justify-content:center; gap:10px}
   .btn-ghost:hover{border-color:var(--cyan)}
   .btn-ghost svg{width:18px; height:18px; color:var(--cyan)}
+  .seg{display:flex; gap:8px}
+  .seg button{flex:1; padding:13px 8px; font-size:13px; letter-spacing:.3px; background:var(--bg2); color:var(--muted); border:1px solid var(--line); border-radius:12px}
+  .seg button[aria-pressed=true]{background:var(--pink); color:var(--bg); border-color:var(--pink)}
+  .chip{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.5px; padding:2px 7px; border-radius:999px; vertical-align:middle; margin-left:6px}
+  .chip.feed{background:rgba(0,240,255,.14); color:var(--cyan)}
+  .chip.wall{background:rgba(255,156,61,.16); color:var(--amber)}
   .photo-pick{position:relative; width:100%; aspect-ratio:4/5; max-height:300px; border-radius:14px;
     border:1.5px dashed var(--line); background:var(--bg2); display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:10px; color:var(--muted); cursor:pointer; overflow:hidden; text-align:center; padding:16px}
@@ -95,6 +101,10 @@
 
   <!-- Post form -->
   <div class="card" id="post-card" hidden>
+    <div class="seg" id="dest">
+      <button type="button" data-dest="feed" aria-pressed="true">Daily Drop</button>
+      <button type="button" data-dest="wall" aria-pressed="false">Wall of Fame</button>
+    </div>
     <label class="photo-pick" id="pick">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3Z"/><circle cx="12" cy="13" r="3"/></svg>
       <span id="pick-label">Tap to choose a photo</span>
@@ -106,20 +116,22 @@
       <input type="text" id="caption" maxlength="140" placeholder="What's happening?" autocomplete="off">
     </div>
 
-    <button class="btn-ghost" id="gps" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-      Use my location
-    </button>
-    <div class="field">
-      <label for="location">Location tag</label>
-      <input type="text" id="location" maxlength="40" placeholder="e.g. DENVER" autocomplete="off">
-    </div>
-    <div class="field">
-      <label for="time">Time label</label>
-      <input type="text" id="time" maxlength="24" placeholder="TODAY" autocomplete="off">
+    <div id="feed-only" style="display:flex; flex-direction:column; gap:16px">
+      <button class="btn-ghost" id="gps" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        Use my location
+      </button>
+      <div class="field">
+        <label for="location">Location tag</label>
+        <input type="text" id="location" maxlength="40" placeholder="e.g. DENVER" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="time">Time label</label>
+        <input type="text" id="time" maxlength="24" placeholder="TODAY" autocomplete="off">
+      </div>
     </div>
 
-    <button class="btn-primary" id="post">Post to feed</button>
+    <button class="btn-primary" id="post">Post to Daily Drop</button>
     <p class="msg" id="msg"></p>
   </div>
 
@@ -166,6 +178,18 @@
   forget.addEventListener('click', function () {
     localStorage.removeItem(LS_PIN); postCard.hidden = true; pinCard.hidden = false; forget.hidden = true;
     pinInput.value = ''; pinInput.focus();
+  });
+
+  // Destination toggle: Daily Drop (feed) vs Wall of Fame
+  var dest = 'feed';
+  var destSeg = document.getElementById('dest');
+  var feedOnly = document.getElementById('feed-only');
+  destSeg.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-dest]'); if (!b) return;
+    dest = b.getAttribute('data-dest');
+    destSeg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    feedOnly.hidden = (dest === 'wall');
+    document.getElementById('post').textContent = (dest === 'wall') ? 'Post to Wall of Fame' : 'Post to Daily Drop';
   });
 
   // Photo pick + preview
@@ -230,7 +254,7 @@
       return fetch('/api/post', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          pin: pin, caption: caption,
+          pin: pin, dest: dest, caption: caption,
           location: document.getElementById('location').value.trim(),
           time: document.getElementById('time').value.trim() || 'TODAY',
           image: dataUrl
@@ -239,12 +263,13 @@
     }).then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
       .then(function (res) {
         if (res.status === 200 && res.j.ok) {
-          setMsg('✓ Posted! Live on your feed in ~30s.', 'ok');
+          setMsg(res.j.dest === 'wall' ? '✓ Posted to the Wall! Live in ~30s.' : '✓ Posted to your feed! Live in ~30s.', 'ok');
           selectedFile = null; pick.classList.remove('has-file');
           pick.querySelectorAll('img').forEach(function (i) { i.remove(); });
           pick.querySelector('svg').style.display = ''; pickLabel.style.display = '';
           document.getElementById('caption').value = '';
           fileInput.value = '';
+          loadManage();
         } else if (res.status === 401) {
           localStorage.removeItem(LS_PIN);
           setMsg('Wrong PIN. Tap "Forget PIN" and re-enter.', 'err');
@@ -262,45 +287,54 @@
   function loadManage() {
     manageCard.hidden = false;
     manageList.innerHTML = '<p class="msg busy">Loading…</p>';
-    fetch('/feed.json?cb=' + Date.now(), { cache: 'no-store' })
-      .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (list) {
-        list = Array.isArray(list) ? list : [];
-        if (!list.length) { manageList.innerHTML = '<p class="msg">No posts yet.</p>'; return; }
-        manageList.innerHTML = '';
-        list.forEach(function (p) {
-          var el = document.createElement('div');
-          el.className = 'mitem'; el.setAttribute('data-id', p.id);
-          el.innerHTML =
-            '<img class="mthumb" src="' + esc(p.image) + '" alt="">' +
-            '<div class="mbody">' +
-              '<div class="mview">' +
-                '<p class="mcap">' + esc(p.caption) + '</p>' +
-                '<p class="mmeta">' + esc(p.time || '') + (p.location ? ' · ' + esc(p.location) : '') + '</p>' +
-                '<div class="macts"><button class="medit">Edit</button><button class="mdel">Delete</button></div>' +
-              '</div>' +
-              '<div class="medit-form" hidden>' +
-                '<input class="mi-cap" type="text" maxlength="140" value="' + esc(p.caption) + '" placeholder="Caption">' +
-                '<input class="mi-loc" type="text" maxlength="40" value="' + esc(p.location || '') + '" placeholder="Location">' +
-                '<input class="mi-time" type="text" maxlength="24" value="' + esc(p.time || '') + '" placeholder="Time (e.g. TODAY)">' +
-                '<div class="macts"><button class="msave">Save</button><button class="mcancel">Cancel</button></div>' +
-              '</div>' +
-            '</div>';
-          manageList.appendChild(el);
-        });
-      })
-      .catch(function () { manageList.innerHTML = '<p class="msg err">Could not load posts.</p>'; });
+    Promise.all([
+      fetch('/feed.json?cb=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }),
+      fetch('/wall.json?cb=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; })
+    ]).then(function (out) {
+      var feed = (Array.isArray(out[0]) ? out[0] : []).map(function (x) { x._list = 'feed'; return x; });
+      var wall = (Array.isArray(out[1]) ? out[1] : []).filter(function (x) { return x && x.approved; }).map(function (x) { x._list = 'wall'; return x; });
+      var all = feed.concat(wall).sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+      if (!all.length) { manageList.innerHTML = '<p class="msg">No posts yet.</p>'; return; }
+      manageList.innerHTML = '';
+      all.forEach(function (p) {
+        var isWall = p._list === 'wall';
+        var el = document.createElement('div');
+        el.className = 'mitem'; el.setAttribute('data-id', p.id); el.setAttribute('data-list', p._list);
+        var meta = isWall
+          ? '<span class="chip wall">WALL</span>'
+          : '<span class="chip feed">FEED</span> ' + esc(p.time || '') + (p.location ? ' · ' + esc(p.location) : '');
+        var editFields = '<input class="mi-cap" type="text" maxlength="140" value="' + esc(p.caption) + '" placeholder="Caption">';
+        if (!isWall) {
+          editFields += '<input class="mi-loc" type="text" maxlength="40" value="' + esc(p.location || '') + '" placeholder="Location">' +
+                        '<input class="mi-time" type="text" maxlength="24" value="' + esc(p.time || '') + '" placeholder="Time (e.g. TODAY)">';
+        }
+        el.innerHTML =
+          '<img class="mthumb" src="' + esc(p.image) + '" alt="">' +
+          '<div class="mbody">' +
+            '<div class="mview">' +
+              '<p class="mcap">' + esc(p.caption) + '</p>' +
+              '<p class="mmeta">' + meta + '</p>' +
+              '<div class="macts"><button class="medit">Edit</button><button class="mdel">Delete</button></div>' +
+            '</div>' +
+            '<div class="medit-form" hidden>' + editFields +
+              '<div class="macts"><button class="msave">Save</button><button class="mcancel">Cancel</button></div>' +
+            '</div>' +
+          '</div>';
+        manageList.appendChild(el);
+      });
+    });
   }
 
   manageList.addEventListener('click', function (e) {
     var item = e.target.closest('.mitem'); if (!item) return;
     var id = item.getAttribute('data-id');
+    var listName = item.getAttribute('data-list');
     var view = item.querySelector('.mview'), form = item.querySelector('.medit-form');
     if (e.target.classList.contains('medit')) { view.hidden = true; form.hidden = false; return; }
     if (e.target.classList.contains('mcancel')) { form.hidden = true; view.hidden = false; return; }
     if (e.target.classList.contains('mdel')) {
-      if (!confirm('Delete this post? The photo is removed for good.')) return;
-      manageAction({ id: id, action: 'delete' }, e.target, function () {
+      if (!confirm('Delete this photo? It’s removed for good.')) return;
+      manageAction({ id: id, list: listName, action: 'delete' }, e.target, function () {
         item.style.transition = 'opacity .2s'; item.style.opacity = '0';
         setTimeout(function () { item.remove(); if (!manageList.children.length) manageList.innerHTML = '<p class="msg">No posts yet.</p>'; }, 200);
       });
@@ -309,11 +343,15 @@
     if (e.target.classList.contains('msave')) {
       var cap = item.querySelector('.mi-cap').value.trim();
       if (!cap) { alert('Caption cannot be empty.'); return; }
-      var loc = item.querySelector('.mi-loc').value.trim();
-      var tm = item.querySelector('.mi-time').value.trim();
-      manageAction({ id: id, action: 'edit', caption: cap, location: loc, time: tm }, e.target, function () {
+      var locEl = item.querySelector('.mi-loc'), timeEl = item.querySelector('.mi-time');
+      var loc = locEl ? locEl.value.trim() : '', tm = timeEl ? timeEl.value.trim() : '';
+      var payload = { id: id, list: listName, action: 'edit', caption: cap };
+      if (listName === 'feed') { payload.location = loc; payload.time = tm; }
+      manageAction(payload, e.target, function () {
         item.querySelector('.mcap').textContent = cap;
-        item.querySelector('.mmeta').textContent = (tm || '').toUpperCase() + (loc ? ' · ' + loc.toUpperCase() : '');
+        if (listName === 'feed') {
+          item.querySelector('.mmeta').innerHTML = '<span class="chip feed">FEED</span> ' + esc((tm || '').toUpperCase()) + (loc ? ' · ' + esc(loc.toUpperCase()) : '');
+        }
         form.hidden = true; view.hidden = false;
       });
     }
