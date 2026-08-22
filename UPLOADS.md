@@ -56,6 +56,16 @@ Vercel → **Deployments → Redeploy** (or push). The redeploy installs the new
    time label (defaults to "TODAY").
 4. **Post to feed** → live on the site in ~30s.
 
+**Edit or delete a post:** the Post-a-Selfie app has a **Your recent posts**
+list below the form. Each post has:
+- **Edit** — change the caption / location / time in place (the photo stays),
+  tap **Save**.
+- **Delete** — removes the post from the feed **and** deletes the photo from
+  Blob storage. To fix a bad photo: delete it and post again.
+
+Both are PIN-gated (`/api/manage`) and go live in ~30s. (You can also edit
+`feed.json` on GitHub by hand, but the app is safer — it can't break the JSON.)
+
 **Community uploads (Wall of Fame):**
 - Visitors tap **"Got a Photo With Me? Upload It"** on the site, add their photo
   + name + where you met, and submit. It goes to the **queue** (not shown yet).

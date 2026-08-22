@@ -59,6 +59,21 @@
   .foot{text-align:center; margin-top:16px; display:flex; gap:16px; justify-content:center}
   .foot a{color:var(--muted); font-size:12px; text-decoration:none; cursor:pointer}
   .foot a:hover{color:var(--text)}
+  .mitem{display:flex; gap:12px; padding:14px 0; border-top:1px solid var(--line)}
+  .mitem:first-child{border-top:0}
+  .mthumb{width:52px; height:66px; flex:0 0 auto; border-radius:8px; object-fit:cover; background:#000}
+  .mbody{flex:1; min-width:0}
+  .mcap{margin:0 0 2px; font-size:14px; overflow-wrap:anywhere}
+  .mmeta{margin:0 0 8px; font-size:11px; color:var(--muted); font-family:ui-monospace, Menlo, Consolas, monospace}
+  .macts{display:flex; gap:8px}
+  .macts button{padding:8px 12px; font-size:12px; border-radius:8px}
+  .medit{background:var(--bg2); color:var(--text); border:1px solid var(--line)}
+  .mdel{background:transparent; color:#ff6b6b; border:1px solid #ff6b6b}
+  .msave{background:var(--pink); color:var(--bg)}
+  .mcancel{background:var(--bg2); color:var(--text); border:1px solid var(--line)}
+  .medit-form{display:flex; flex-direction:column; gap:8px}
+  .medit-form input{font-size:15px; padding:12px 14px; background:var(--bg2); border:1px solid var(--line); border-radius:10px; color:var(--text); font-family:var(--fb)}
+  .medit-form input:focus{outline:none; border-color:var(--pink)}
   [hidden]{display:none !important}
   .visually-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
 </style>
@@ -108,6 +123,12 @@
     <p class="msg" id="msg"></p>
   </div>
 
+  <!-- Manage recent posts -->
+  <div class="card" id="manage-card" hidden style="margin-top:16px">
+    <label>Your recent posts</label>
+    <div id="manage-list"><p class="msg busy">Loading…</p></div>
+  </div>
+
   <div class="foot">
     <a id="forget" hidden>Forget PIN</a>
     <a href="/checkin/">Check-In app →</a>
@@ -132,8 +153,9 @@
 
   function setMsg(t, kind) { msg.textContent = t || ''; msg.className = 'msg' + (kind ? ' ' + kind : ''); }
 
-  function showPost() { pinCard.hidden = true; postCard.hidden = false; forget.hidden = false; }
+  function showPost() { pinCard.hidden = true; postCard.hidden = false; forget.hidden = false; loadManage(); }
   function currentPin() { return localStorage.getItem(LS_PIN) || pinInput.value; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 
   document.getElementById('unlock').addEventListener('click', function () {
     var v = pinInput.value.trim();
@@ -145,7 +167,6 @@
     localStorage.removeItem(LS_PIN); postCard.hidden = true; pinCard.hidden = false; forget.hidden = true;
     pinInput.value = ''; pinInput.focus();
   });
-  if (localStorage.getItem(LS_PIN)) showPost();
 
   // Photo pick + preview
   fileInput.addEventListener('change', function () {
@@ -234,6 +255,93 @@
       .catch(function () { setMsg('Network error — try again.', 'err'); })
       .then(function () { postBtn.disabled = false; });
   });
+
+  // ── Manage recent posts (edit / delete) ──
+  var manageCard = document.getElementById('manage-card');
+  var manageList = document.getElementById('manage-list');
+  function loadManage() {
+    manageCard.hidden = false;
+    manageList.innerHTML = '<p class="msg busy">Loading…</p>';
+    fetch('/feed.json?cb=' + Date.now(), { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (list) {
+        list = Array.isArray(list) ? list : [];
+        if (!list.length) { manageList.innerHTML = '<p class="msg">No posts yet.</p>'; return; }
+        manageList.innerHTML = '';
+        list.forEach(function (p) {
+          var el = document.createElement('div');
+          el.className = 'mitem'; el.setAttribute('data-id', p.id);
+          el.innerHTML =
+            '<img class="mthumb" src="' + esc(p.image) + '" alt="">' +
+            '<div class="mbody">' +
+              '<div class="mview">' +
+                '<p class="mcap">' + esc(p.caption) + '</p>' +
+                '<p class="mmeta">' + esc(p.time || '') + (p.location ? ' · ' + esc(p.location) : '') + '</p>' +
+                '<div class="macts"><button class="medit">Edit</button><button class="mdel">Delete</button></div>' +
+              '</div>' +
+              '<div class="medit-form" hidden>' +
+                '<input class="mi-cap" type="text" maxlength="140" value="' + esc(p.caption) + '" placeholder="Caption">' +
+                '<input class="mi-loc" type="text" maxlength="40" value="' + esc(p.location || '') + '" placeholder="Location">' +
+                '<input class="mi-time" type="text" maxlength="24" value="' + esc(p.time || '') + '" placeholder="Time (e.g. TODAY)">' +
+                '<div class="macts"><button class="msave">Save</button><button class="mcancel">Cancel</button></div>' +
+              '</div>' +
+            '</div>';
+          manageList.appendChild(el);
+        });
+      })
+      .catch(function () { manageList.innerHTML = '<p class="msg err">Could not load posts.</p>'; });
+  }
+
+  manageList.addEventListener('click', function (e) {
+    var item = e.target.closest('.mitem'); if (!item) return;
+    var id = item.getAttribute('data-id');
+    var view = item.querySelector('.mview'), form = item.querySelector('.medit-form');
+    if (e.target.classList.contains('medit')) { view.hidden = true; form.hidden = false; return; }
+    if (e.target.classList.contains('mcancel')) { form.hidden = true; view.hidden = false; return; }
+    if (e.target.classList.contains('mdel')) {
+      if (!confirm('Delete this post? The photo is removed for good.')) return;
+      manageAction({ id: id, action: 'delete' }, e.target, function () {
+        item.style.transition = 'opacity .2s'; item.style.opacity = '0';
+        setTimeout(function () { item.remove(); if (!manageList.children.length) manageList.innerHTML = '<p class="msg">No posts yet.</p>'; }, 200);
+      });
+      return;
+    }
+    if (e.target.classList.contains('msave')) {
+      var cap = item.querySelector('.mi-cap').value.trim();
+      if (!cap) { alert('Caption cannot be empty.'); return; }
+      var loc = item.querySelector('.mi-loc').value.trim();
+      var tm = item.querySelector('.mi-time').value.trim();
+      manageAction({ id: id, action: 'edit', caption: cap, location: loc, time: tm }, e.target, function () {
+        item.querySelector('.mcap').textContent = cap;
+        item.querySelector('.mmeta').textContent = (tm || '').toUpperCase() + (loc ? ' · ' + loc.toUpperCase() : '');
+        form.hidden = true; view.hidden = false;
+      });
+    }
+  });
+
+  function manageAction(payload, btn, onDone) {
+    var pin = currentPin();
+    if (!pin) { alert('Unlock again.'); return; }
+    payload.pin = pin;
+    if (btn) btn.disabled = true;
+    fetch('/api/manage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      .then(function (r) { return r.json().then(function (j) { return { status: r.status, j: j }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.j.ok) {
+          setMsg((payload.action === 'delete' ? 'Deleted' : 'Saved') + ' — live on the site in ~30s.', 'ok');
+          if (onDone) onDone();
+        } else if (res.status === 401) {
+          localStorage.removeItem(LS_PIN); alert('Wrong PIN — unlock again.'); location.reload();
+        } else {
+          alert((res.j.error || 'Failed.') + (res.j.detail ? ' — ' + res.j.detail : '')); if (btn) btn.disabled = false;
+        }
+      })
+      .catch(function () { alert('Network error.'); if (btn) btn.disabled = false; });
+  }
+
+  // Auto-skip the PIN screen if we've unlocked before (runs last, after all
+  // handlers and element refs are set up so loadManage has what it needs).
+  if (localStorage.getItem(LS_PIN)) showPost();
 })();
 </script>
 </body>
